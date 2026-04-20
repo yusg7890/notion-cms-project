@@ -3,6 +3,9 @@
 # vs code
 settings.json
 
+# Claude Code local settings
+.claude/settings.local.json
+
 # dependencies
 /node_modules
 /.pnp
