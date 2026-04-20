@@ -65,7 +65,7 @@ npm run dev
 | `ticker` | Text | 종목 코드 |
 | `sector` | Select | 산업 섹터 |
 | `tags` | Multi-select | 분류 태그 |
-| `opinion` | Select | `buy` / `hold` / `sell` |
+| `opinion` | Select | `매수` / `관망` / `매도` |
 | `target_price` | Number | 목표가 (Claude 자동 산정) |
 | `currency` | Select | `KRW` / `USD` |
 | `summary` | Text | 한 줄 요약 |
