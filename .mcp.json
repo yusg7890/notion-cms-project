@@ -27,6 +27,15 @@
         "shadcn@latest",
         "mcp"
       ]
+    },
+    "shrimp-task-manager": {
+      "command": "node",
+      "args": ["/home/yusg7890/workspace/mcp-shrimp-task-manager/dist/index.js"],
+      "env": {
+        "DATA_DIR": "/home/yusg7890/workspace/notion-cms-project/shrimp_data",
+        "TEMPLATES_USE": "en",
+        "ENABLE_GUI": "true"
+      }
     }
   }
 }
