@@ -68,7 +68,7 @@ AI Stock Research Archive는 개인 투자자·학습자를 위한 **AI 리서�
 
 ### Phase 1: 애플리케이션 골격 구축
 
-- **Task 001: 프로젝트 구조 및 라우팅 설정** - 우선순위
+- **Task 001: 프로젝트 구조 및 라우팅 설정** ✅ - 완료
   - Next.js 16 App Router 기반 전체 라우트 구조 생성 (`/`, `/research/[id]`, `/stocks/[ticker]`, `/search`, `/api/revalidate`)
   - 각 페이지의 빈 껍데기 파일 생성 (`page.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`)
   - 공통 레이아웃 (`app/layout.tsx`) 골격 및 메타데이터/폰트 설정
@@ -76,7 +76,7 @@ AI Stock Research Archive는 개인 투자자·학습자를 위한 **AI 리서�
   - `next.config.ts` 기본 설정 (이미지 도메인 등 추후 확장 지점)
   - `params`/`searchParams` Promise 타입 처리 템플릿 확립
 
-- **Task 002: 타입 정의 및 인터페이스 설계**
+- **Task 002: 타입 정의 및 인터페이스 설계** ✅ - 완료
   - `types/research.ts` — `Research`, `StockHistory`, `Opinion`, `Currency` 타입 정의
   - `types/notion.ts` — Notion API 응답 및 Property 매퍼 입력 타입 정의
   - Notion DB 스키마 상수화 (`lib/constants/notion-schema.ts`) — Property Key 영문 고정
