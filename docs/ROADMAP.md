@@ -86,7 +86,7 @@ AI Stock Research Archive는 개인 투자자·학습자를 위한 **AI 리서�
 
 ### Phase 2: UI/UX 완성 (더미 데이터 활용)
 
-- **Task 003: 공통 컴포넌트 라이브러리 및 디자인 시스템 구축**
+- **Task 003: 공통 컴포넌트 라이브러리 및 디자인 시스템 구축** ✅ - 완료
   - shadcn/ui 필요 컴포넌트 설치 (Card, Badge, Input, Select, Tabs, Skeleton 등)
   - @hugeicons/react 아이콘 래퍼 및 공통 아이콘 프리셋 구축
   - 투자의견 Badge 컴포넌트 (매수/관망/매도 색상 토큰 정의)
@@ -95,7 +95,7 @@ AI Stock Research Archive는 개인 투자자·학습자를 위한 **AI 리서�
   - 더미 데이터 팩토리 (`lib/mocks/research.ts`) — 20~30건 샘플 리서치 + 2~3개 종목 히스토리
   - 디자인 토큰 및 다크 모드(선택) 확인
 
-- **Task 004: 메인 페이지 UI 완성 (카드 그리드 + 필터)**
+- **Task 004: 메인 페이지 UI 완성 (카드 그리드 + 필터)** ✅ - 완료
   - 리서치 카드 컴포넌트 (`ResearchCard`) — 썸네일, 종목명, 티커, 투자의견, 목표가, 요약, 태그
   - 카드 그리드 레이아웃 (반응형 1→2→3 컬럼)
   - 섹터 필터 Select + 태그 Multi-select (클라이언트 필터링, URL searchParams 동기화)
@@ -103,7 +103,7 @@ AI Stock Research Archive는 개인 투자자·학습자를 위한 **AI 리서�
   - 더미 데이터 기반 최신순 정렬 동작 확인
   - 모바일 필터 시트(Drawer) 대응
 
-- **Task 005: 상세/히스토리/검색 페이지 UI 완성**
+- **Task 005: 상세/히스토리/검색 페이지 UI 완성** ✅ - 완료
   - `/research/[id]` — Notion 본문 영역 placeholder(react-markdown 목업), 헤더 메타 정보, 면책 문구 배너
   - `/stocks/[ticker]` — 종목 요약 카드 + recharts 라인 차트 스켈레톤 (더미 시계열 데이터) + 관련 리서치 타임라인
   - `/search` — 검색 인풋, 결과 리스트, 검색어 하이라이트, 최근 검색어(로컬 저장소 기반)
