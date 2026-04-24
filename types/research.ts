@@ -1,6 +1,7 @@
 export type Opinion = 'BUY' | 'HOLD' | 'SELL'
 export type Currency = 'KRW' | 'USD'
 export type ResearchStatus = 'draft' | 'published'
+export type MarketCap = 'large' | 'mid' | 'small'
 
 export interface Research {
   id: string
@@ -10,7 +11,9 @@ export interface Research {
   sector: string
   tags: string[]
   opinion: Opinion
+  marketCap: MarketCap
   targetPrice: number
+  expertBuyPrice?: number
   currency: Currency
   summary: string
   publishedAt: Date

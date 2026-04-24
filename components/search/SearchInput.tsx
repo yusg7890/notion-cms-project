@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 
@@ -38,9 +38,12 @@ export function SearchInput() {
 
   const initialQuery = searchParams.get('q') ?? ''
   const [inputValue, setInputValue] = useState(initialQuery)
-  const [recentSearches, setRecentSearches] = useState<string[]>(
-    () => (typeof window !== 'undefined' ? getRecentSearches() : [])
-  )
+  const [recentSearches, setRecentSearches] = useState<string[]>([])
+
+  // localStorage는 마운트 후에만 읽기 — SSR/클라이언트 hydration 불일치 방지
+  useEffect(() => {
+    setRecentSearches(getRecentSearches())
+  }, [])
 
   /** 검색 실행: URL push + 최근 검색어 저장 */
   function executeSearch(term: string) {

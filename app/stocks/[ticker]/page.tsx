@@ -1,7 +1,7 @@
 import { getMockStockHistory } from '@/lib/mocks/research'
 import { notFound } from 'next/navigation'
 import { formatPrice, formatDate } from '@/lib/formatters'
-import { HistoryChart } from '@/components/stocks/HistoryChart'
+import { HistoryChartLazy as HistoryChart } from '@/components/stocks/HistoryChartLazy'
 import { StockSummaryCard } from '@/components/stocks/StockSummaryCard'
 import { ResearchCard } from '@/components/research/ResearchCard'
 import { OpinionBadge } from '@/components/research/OpinionBadge'

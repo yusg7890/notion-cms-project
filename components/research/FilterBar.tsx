@@ -1,7 +1,7 @@
 'use client'
 
-import { useCallback } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -26,7 +26,6 @@ export function FilterBar({
   currentTags,
 }: FilterBarProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   /** URL을 새 sector/tags 값으로 업데이트하는 헬퍼 */
   const pushUrl = useCallback(
@@ -40,12 +39,12 @@ export function FilterBar({
     [router]
   )
 
-  /** 섹터 변경 핸들러 */
+  /** 섹터 변경 핸들러 — 섹터 변경 시 태그 선택 초기화 */
   const handleSectorChange = useCallback(
     (value: string) => {
-      pushUrl(value, currentTags)
+      pushUrl(value, [])
     },
-    [pushUrl, currentTags]
+    [pushUrl]
   )
 
   /** 태그 토글 핸들러 — 선택된 태그는 제거, 미선택 태그는 추가 (OR 조건) */
@@ -64,6 +63,9 @@ export function FilterBar({
     router.push('/')
   }, [router])
 
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
   const hasFilter =
     (currentSector && currentSector !== 'all') || currentTags.length > 0
 
@@ -71,22 +73,26 @@ export function FilterBar({
     <div className='flex flex-col gap-3'>
       {/* 섹터 필터 + 초기화 버튼 행 */}
       <div className='flex items-center gap-2 flex-wrap'>
-        <Select
-          value={currentSector || 'all'}
-          onValueChange={handleSectorChange}
-        >
-          <SelectTrigger className='w-36'>
-            <SelectValue placeholder='섹터 선택' />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='all'>전체 섹터</SelectItem>
-            {sectors.map((sector) => (
-              <SelectItem key={sector} value={sector}>
-                {sector}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {mounted ? (
+          <Select
+            value={currentSector || 'all'}
+            onValueChange={handleSectorChange}
+          >
+            <SelectTrigger className='w-36'>
+              <SelectValue placeholder='섹터 선택' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='all'>전체 섹터</SelectItem>
+              {sectors.map((sector) => (
+                <SelectItem key={sector} value={sector}>
+                  {sector}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <div className='h-7 w-36 rounded-md bg-muted animate-pulse' />
+        )}
 
         {hasFilter && (
           <Button variant='ghost' size='sm' onClick={handleReset}>
@@ -101,14 +107,17 @@ export function FilterBar({
           {tags.map((tag) => {
             const isSelected = currentTags.includes(tag)
             return (
-              <Button
+              <button
                 key={tag}
-                variant={isSelected ? 'default' : 'outline'}
-                size='xs'
                 onClick={() => handleTagToggle(tag)}
+                className={
+                  isSelected
+                    ? 'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors bg-primary text-primary-foreground shadow-sm'
+                    : 'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors border border-border/70 text-muted-foreground hover:border-primary/50 hover:text-primary hover:bg-accent/40'
+                }
               >
                 {tag}
-              </Button>
+              </button>
             )
           })}
         </div>

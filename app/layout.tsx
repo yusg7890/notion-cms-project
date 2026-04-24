@@ -4,6 +4,7 @@ import './globals.css'
 import { cn } from '@/lib/utils'
 import Header from '@/components/common/Header'
 import Footer from '@/components/common/Footer'
+import { ThemeProvider } from '@/components/common/ThemeProvider'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
 
@@ -22,11 +23,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang='ko' className={cn('h-full antialiased', inter.variable)}>
+    <html lang='ko' className={cn('h-full antialiased', inter.variable)} suppressHydrationWarning>
       <body className='min-h-full flex flex-col'>
-        <Header />
-        <main className='flex flex-1 flex-col'>{children}</main>
-        <Footer />
+        <ThemeProvider>
+          <Header />
+          <main className='flex flex-1 flex-col'>{children}</main>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   )

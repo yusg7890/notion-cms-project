@@ -1,12 +1,13 @@
-import { getMockResearchById } from '@/lib/mocks/research'
+import { getMockResearchById, getMockStockHistory } from '@/lib/mocks/research'
 import { notFound } from 'next/navigation'
 import { formatPrice, formatDate } from '@/lib/formatters'
 import { OpinionBadge } from '@/components/research/OpinionBadge'
+import { MarketCapBadge } from '@/components/research/MarketCapBadge'
+import { ResearchCard } from '@/components/research/ResearchCard'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { HistoryChartLazy as HistoryChart } from '@/components/stocks/HistoryChartLazy'
 
 export const revalidate = 86400
 
@@ -62,6 +63,14 @@ export default async function ResearchPage({
     notFound()
   }
 
+  const stockHistory = getMockStockHistory(research.ticker)
+  const historyResearches = stockHistory?.researches ?? [research]
+
+  // 차트용: 오름차순 / 카드 목록용: 내림차순, 현재 리서치 제외
+  const relatedResearches = [...historyResearches]
+    .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
+    .filter((r) => r.id !== research.id)
+
   return (
     <div className='mx-auto w-full max-w-3xl px-4 py-8'>
       {/* 헤더 영역 */}
@@ -72,6 +81,7 @@ export default async function ResearchPage({
             {research.ticker}
           </span>
           <Badge variant='outline'>{research.sector}</Badge>
+          <MarketCapBadge marketCap={research.marketCap} full />
           <OpinionBadge opinion={research.opinion} />
         </div>
       </div>
@@ -79,12 +89,22 @@ export default async function ResearchPage({
       {/* 메타 정보 카드 */}
       <div className='bg-muted/50 rounded-lg p-4 mb-6'>
         <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-          {/* 목표가 */}
-          <div className='flex flex-col gap-0.5'>
-            <span className='text-xs text-muted-foreground'>목표가</span>
-            <span className='text-xl font-bold'>
-              {formatPrice(research.targetPrice, research.currency)}
-            </span>
+          {/* 목표가 + 전문가 매수가 */}
+          <div className='flex items-end gap-6'>
+            <div className='flex flex-col gap-0.5'>
+              <span className='text-xs text-muted-foreground'>목표가</span>
+              <span className='text-xl font-bold'>
+                {formatPrice(research.targetPrice, research.currency)}
+              </span>
+            </div>
+            {research.expertBuyPrice != null && (
+              <div className='flex flex-col gap-0.5'>
+                <span className='text-xs text-muted-foreground'>전문가 매수가</span>
+                <span className='text-xl font-bold text-amber-500'>
+                  {formatPrice(research.expertBuyPrice, research.currency)}
+                </span>
+              </div>
+            )}
           </div>
           {/* 발행일 + AI 모델 */}
           <div className='flex flex-col gap-1 text-sm text-muted-foreground sm:text-right'>
@@ -103,6 +123,14 @@ export default async function ResearchPage({
           </div>
         )}
       </div>
+
+      {/* 목표가 추이 차트 */}
+      <section className='mb-6'>
+        <h2 className='text-base font-semibold mb-3'>목표가 추이</h2>
+        <div className='rounded-lg border p-4 bg-background'>
+          <HistoryChart researches={historyResearches} highlightId={research.id} />
+        </div>
+      </section>
 
       {/* 본문 영역 — Notion 연동 전 더미 마크다운 */}
       <article className='prose max-w-none'>
@@ -154,14 +182,19 @@ export default async function ResearchPage({
         </ReactMarkdown>
       </article>
 
-      {/* 하단: 종목 히스토리 링크 */}
-      <div className='mt-8 pt-6 border-t'>
-        <Button asChild variant='outline' size='lg'>
-          <Link href={`/stocks/${research.ticker}`}>
-            {research.stockName}의 모든 리서치 보기
-          </Link>
-        </Button>
-      </div>
+      {/* 하단: 동일 종목 리서치 목록 */}
+      {relatedResearches.length > 0 && (
+        <section className='mt-10 pt-8 border-t'>
+          <h2 className='text-base font-semibold mb-4'>
+            {research.stockName} 리서치 히스토리
+          </h2>
+          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+            {relatedResearches.map((r) => (
+              <ResearchCard key={r.id} research={r} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

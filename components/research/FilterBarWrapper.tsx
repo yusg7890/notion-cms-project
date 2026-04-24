@@ -1,5 +1,3 @@
-'use client'
-
 import { Suspense } from 'react'
 import { FilterBar } from './FilterBar'
 import { Skeleton } from '@/components/ui/skeleton'
