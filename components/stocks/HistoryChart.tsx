@@ -23,6 +23,8 @@ ChartJS.register(LinearScale, PointElement, LineElement, Tooltip, ZoomPlugin)
 interface HistoryChartProps {
   researches: Research[]
   highlightId?: string
+  /** 화살표 라벨을 표시할 데이터셋 — 'target': 목표가(AI), 'expert': 전문가 매수가 */
+  highlightLine?: 'target' | 'expert'
 }
 
 const DEFAULT_WINDOW = 10
@@ -57,7 +59,7 @@ interface ChartPoint {
   currency: 'KRW' | 'USD'
 }
 
-export function HistoryChart({ researches, highlightId }: HistoryChartProps) {
+export function HistoryChart({ researches, highlightId, highlightLine = 'target' }: HistoryChartProps) {
   const router = useRouter()
   const { resolvedTheme } = useTheme()
   const [isMounted, setIsMounted] = useState(false)
@@ -147,15 +149,11 @@ export function HistoryChart({ researches, highlightId }: HistoryChartProps) {
         data: points.map((d) => ({ x: d.index, y: d.price })),
         borderColor: '#3b82f6',
         backgroundColor: '#3b82f6',
-        pointRadius: points.map((_, i) => (i === highlightIndex ? 9 : 4)),
-        pointHoverRadius: points.map((_, i) => (i === highlightIndex ? 11 : 6)),
-        pointBorderWidth: points.map((_, i) => (i === highlightIndex ? 3 : 2)),
-        pointBorderColor: points.map((_, i) =>
-          i === highlightIndex ? '#3b82f6' : dotStroke
-        ),
-        pointBackgroundColor: points.map((_, i) =>
-          i === highlightIndex ? '#ffffff' : '#3b82f6'
-        ),
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBorderWidth: 2,
+        pointBorderColor: dotStroke,
+        pointBackgroundColor: '#3b82f6',
         pointHoverBorderColor: dotStroke,
         tension: 0,
         spanGaps: false,
@@ -168,15 +166,11 @@ export function HistoryChart({ researches, highlightId }: HistoryChartProps) {
               borderColor: '#fbbf24',
               backgroundColor: '#fbbf24',
               borderDash: [5, 4] as number[],
-              pointRadius: points.map((_, i) => (i === highlightIndex ? 9 : 4)),
-              pointHoverRadius: points.map((_, i) => (i === highlightIndex ? 11 : 6)),
-              pointBorderWidth: points.map((_, i) => (i === highlightIndex ? 3 : 2)),
-              pointBorderColor: points.map((_, i) =>
-                i === highlightIndex ? '#fbbf24' : dotStroke
-              ),
-              pointBackgroundColor: points.map((_, i) =>
-                i === highlightIndex ? '#ffffff' : '#fbbf24'
-              ),
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              pointBorderWidth: 2,
+              pointBorderColor: dotStroke,
+              pointBackgroundColor: '#fbbf24',
               pointHoverBorderColor: dotStroke,
               tension: 0,
               spanGaps: false,
@@ -306,28 +300,64 @@ export function HistoryChart({ researches, highlightId }: HistoryChartProps) {
       const { ctx, chartArea, scales } = chart
       const x = scales.x?.getPixelForValue(highlightIndex)
       if (x == null || x < chartArea.left || x > chartArea.right) return
+      const pt = points[highlightIndex]
+      const rawY = highlightLine === 'expert'
+        ? (pt.expertBuyPrice ?? pt.price)
+        : pt.price
+      const priceY = scales.y?.getPixelForValue(rawY)
+      if (priceY == null) return
 
       ctx.save()
 
-      // 수직 점선
-      ctx.setLineDash([4, 3])
-      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.18)'
-      ctx.lineWidth = 1.5
-      ctx.beginPath()
-      ctx.moveTo(x, chartArea.top)
-      ctx.lineTo(x, chartArea.bottom)
-      ctx.stroke()
+      const label = '현재 페이지'
+      const fontSize = 11
+      const padX = 8
+      const padY = 4
+      const triH = 7
+      const gap = 6
 
-      // 위쪽 삼각형 (아래 방향)
-      const tri = 6
-      ctx.setLineDash([])
-      ctx.fillStyle = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.35)'
+      ctx.font = `600 ${fontSize}px system-ui,-apple-system,sans-serif`
+      const textW = ctx.measureText(label).width
+      const boxW = textW + padX * 2
+      const boxH = fontSize + padY * 2
+
+      // 기본 위치: 점 위 / 공간 부족 시 점 아래로 뒤집기
+      const above = priceY - gap - triH - boxH >= chartArea.top
+      const boxTop = above
+        ? priceY - gap - triH - boxH
+        : priceY + gap + triH
+      const boxBottom = boxTop + boxH
+      const arrowBaseY = above ? boxBottom : boxTop
+      const arrowTipY = above ? priceY - gap : priceY + gap
+
+      // 수평 중앙 정렬 — 차트 영역 안으로 클램핑
+      let labelX = x
+      if (x - boxW / 2 < chartArea.left) labelX = chartArea.left + boxW / 2
+      if (x + boxW / 2 > chartArea.right) labelX = chartArea.right - boxW / 2
+      const boxLeft = labelX - boxW / 2
+
+      const accent = '#3b82f6'
+
+      // 라벨 박스 (둥근 사각형)
+      ctx.fillStyle = accent
       ctx.beginPath()
-      ctx.moveTo(x - tri, chartArea.top)
-      ctx.lineTo(x + tri, chartArea.top)
-      ctx.lineTo(x, chartArea.top + Math.round(tri * 1.5))
+      ctx.roundRect(boxLeft, boxTop, boxW, boxH, 4)
+      ctx.fill()
+
+      // 화살표 삼각형 (박스 → 데이터 점 방향)
+      ctx.fillStyle = accent
+      ctx.beginPath()
+      ctx.moveTo(labelX - 5, arrowBaseY)
+      ctx.lineTo(labelX + 5, arrowBaseY)
+      ctx.lineTo(x, arrowTipY)
       ctx.closePath()
       ctx.fill()
+
+      // 텍스트
+      ctx.fillStyle = '#ffffff'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(label, labelX, boxTop + boxH / 2)
 
       ctx.restore()
     },

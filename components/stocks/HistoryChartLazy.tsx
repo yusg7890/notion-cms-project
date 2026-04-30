@@ -11,9 +11,17 @@ const HistoryChartDynamic = dynamic(
 export function HistoryChartLazy({
   researches,
   highlightId,
+  highlightLine,
 }: {
   researches: Research[]
   highlightId?: string
+  highlightLine?: 'target' | 'expert'
 }) {
-  return <HistoryChartDynamic researches={researches} highlightId={highlightId} />
+  return (
+    <HistoryChartDynamic
+      researches={researches}
+      highlightId={highlightId}
+      highlightLine={highlightLine}
+    />
+  )
 }

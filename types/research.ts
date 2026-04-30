@@ -3,6 +3,8 @@ export type Currency = 'KRW' | 'USD'
 export type ResearchStatus = 'draft' | 'published'
 export type MarketCap = 'large' | 'mid' | 'small'
 
+export type ResearchSource = 'ai' | 'strategist'
+
 export interface Research {
   id: string
   title: string
@@ -19,6 +21,7 @@ export interface Research {
   publishedAt: Date
   status: ResearchStatus
   aiModel: string
+  source?: ResearchSource
 }
 
 export interface StockHistory {
