@@ -2,14 +2,14 @@
 
 ## 핵심 정보
 
-**목적**: 전문가 전략가의 종목 추천(Strategist Research)과 Claude가 생성한 AI 종목 분석(AI Research)을 Notion에 축적하고, 동일 종목의 투자의견·전문가 매수가·목표가 변화를 시계열로 추적한다. **Strategist Research가 주된 사용 케이스**로, 전문가 매수가를 메인 지표로 아카이빙한다.
+**목적**: 전문가 전략가의 종목 추천(Expert Research)과 Claude가 생성한 AI 종목 분석(AI Research)을 Notion에 축적하고, 동일 종목의 투자의견·전문가 매수가·목표가 변화를 시계열로 추적한다. **Expert Research가 주된 사용 케이스**로, 전문가 매수가를 메인 지표로 아카이빙한다.
 **사용자**: 프로젝트 소유자 1인 — 주요 증권사/전략가의 종목 추천을 직접 입력하거나 Claude로 AI 분석을 요청하고, 그 결과를 개인 투자 학습 기록으로 보관한다.
 
 ---
 
 ## 사용자 스토리
 
-### Strategist Research 작성자 관점 (주된 사용 케이스)
+### Expert Research 작성자 관점 (주된 사용 케이스)
 
 - "주요 증권사 전략가의 종목 추천을 Notion DB에 입력하면, 전문가 매수가와 투자의견이 웹 아카이브에 자동 반영되길 원한다."
 - "동일 종목에 대한 여러 시점의 전문가 매수가 추이를 시계열 차트로 비교하고 싶다."
@@ -31,24 +31,24 @@
 
 ## 사용자 여정
 
-### Strategist Research 여정 (주된 사용 케이스)
+### Expert Research 여정 (주된 사용 케이스)
 
 ```
 1. [Notion DB - 직접 입력]
-   사용자 → 전문가 종목 추천 정보를 Notion DB에 수동 입력 (source: 'strategist')
+   사용자 → 전문가 종목 추천 정보를 Notion DB에 수동 입력 (source: 'expert')
    status 속성 → 'published' 로 변경
    수동으로 POST /api/revalidate 호출
    ↓
 
-2. [웹 - Strategist Research 페이지]
-   /strategist — 전문가 매수가 중심 카드 그리드
+2. [웹 - Expert Research 페이지]
+   /expert — 전문가 매수가 중심 카드 그리드
    ↓
    [필터: 섹터 / 태그 선택]
    ↓
 
 3. 분기점
    A. 카드 클릭 → [상세 페이지] → 전문가 매수가·투자의견 + 목표가 추이 차트
-   B. 검색창 입력 → [검색 페이지] → AI + Strategist 통합 검색 결과
+   B. 검색창 입력 → [검색 페이지] → AI + Expert 통합 검색 결과
 ```
 
 ### AI Research 여정 (보조 사용 케이스)
@@ -72,7 +72,7 @@
 
 4. 분기점
    A. 카드 클릭 → [상세 페이지] → Notion 본문 렌더링 + 목표가 추이 차트
-   B. 검색창 입력 → [검색 페이지] → AI + Strategist 통합 검색 결과
+   B. 검색창 입력 → [검색 페이지] → AI + Expert 통합 검색 결과
 
 5. [상세 페이지]
    본문 읽기 완료 → 종목 히스토리 링크로 이동 가능
@@ -93,7 +93,7 @@
 | **F005** | 종목 히스토리 조회 | 동일 종목 리서치를 시계열로 나열 + 목표가/투자의견 변화 차트 | 시계열 추적이 이 프로젝트의 차별 가치 | 종목 히스토리 페이지 |
 | **F006** | Notion 연동 (읽기) | Notion API로 발행 상태 리서치 데이터 조회 및 Cache Components 캐싱 | Notion이 유일한 데이터 소스 | 전체 페이지 (서버 레이어) |
 | **F007** | On-demand Revalidation | 수동 API 호출로 캐시 즉시 갱신 | 발행 후 즉시 반영을 위한 최소 운영 도구 | 전체 페이지 (서버 레이어) |
-| **F008** | Strategist Research 목록 | 전문가 매수가 중심 리서치를 최신순 카드 그리드로 표시 (`/strategist`) | Strategist Research가 주된 사용 케이스 — 별도 진입점 필요 | Strategist Research 페이지 |
+| **F008** | Expert Research 목록 | 전문가 매수가 중심 리서치를 최신순 카드 그리드로 표시 (`/expert`) | Expert Research가 주된 사용 케이스 — 별도 진입점 필요 | Expert Research 페이지 |
 
 ### 2. MVP 필수 지원 기능
 
@@ -122,12 +122,12 @@ Research Archive 내비게이션
 왼쪽 사이드바 (전체 공개, sticky)
 ├── [사이트 제목] Research Archive → / 이동
 ├── AI Research (/) - F001, F002           ← 보라색(violet) 카드 그리드
-├── Strategist Research (/strategist) - F008  ← 황색(amber) 카드 그리드
+├── Expert Research (/expert) - F008  ← 황색(amber) 카드 그리드
 └── 검색 (/search) - F003
 
 페이지 내 이동
 ├── AI Research 카드 클릭 → 상세 페이지 - F004
-├── Strategist Research 카드 클릭 → 상세 페이지 - F004
+├── Expert Research 카드 클릭 → 상세 페이지 - F004
 ├── 상세 페이지 내 "이 종목의 모든 리서치 보기" → 종목 히스토리 페이지 - F005
 └── 종목 히스토리 페이지 내 각 리서치 → 상세 페이지 - F004
 
@@ -154,16 +154,16 @@ Research Archive 내비게이션
 
 ---
 
-### Strategist Research 페이지 (`/strategist`)
+### Expert Research 페이지 (`/expert`)
 
-> **구현 기능:** `F008`, `F002`, `F011` | **접근:** 사이드바 Strategist Research 버튼
+> **구현 기능:** `F008`, `F002`, `F011` | **접근:** 사이드바 Expert Research 버튼
 
 | 항목 | 내용 |
 |------|------|
 | **역할** | 전문가 전략가의 종목 추천 리서치의 진입점. 전문가 매수가 중심 황색(amber) 카드 그리드. **사이트의 주된 사용 케이스** |
-| **진입 경로** | 사이드바 Strategist Research 버튼 클릭 |
+| **진입 경로** | 사이드바 Expert Research 버튼 클릭 |
 | **사용자 행동** | 전문가 매수가를 중심으로 카드 목록을 확인하거나, 섹터·태그 필터로 범위를 좁혀 탐색 |
-| **주요 기능** | • Strategist 리서치 카드 그리드 (소스 레이블 "전문가 의견", 종목명, 투자의견 배지, **전문가 매수가**+통화단위, 발행일, 요약 표시)<br>• 섹터 필터 드롭다운 (클라이언트 필터링)<br>• 태그 멀티 필터 (클라이언트 필터링, 다중 선택 시 OR 조건)<br>• 면책 문구 푸터<br>• **리서치 카드 클릭** → 상세 페이지 이동 |
+| **주요 기능** | • Expert 리서치 카드 그리드 (소스 레이블 "전문가 의견", 종목명, 투자의견 배지, **전문가 매수가**+통화단위, 발행일, 요약 표시)<br>• 섹터 필터 드롭다운 (클라이언트 필터링)<br>• 태그 멀티 필터 (클라이언트 필터링, 다중 선택 시 OR 조건)<br>• 면책 문구 푸터<br>• **리서치 카드 클릭** → 상세 페이지 이동 |
 | **카드 스타일** | 황색(amber) 그라데이션 배경, 황색 테두리, "전문가 의견" 소스 레이블 |
 | **다음 이동** | 카드 클릭 → 상세 페이지 / 검색창 입력 → 검색 페이지 |
 
@@ -189,10 +189,10 @@ Research Archive 내비게이션
 
 | 항목 | 내용 |
 |------|------|
-| **역할** | 동일 종목의 모든 리서치(AI + Strategist 통합)를 시계열로 보여주고, 목표가·전문가 매수가·투자의견 변화를 시각화. 프로젝트의 차별 핵심 화면 |
+| **역할** | 동일 종목의 모든 리서치(AI + Expert 통합)를 시계열로 보여주고, 목표가·전문가 매수가·투자의견 변화를 시각화. 프로젝트의 차별 핵심 화면 |
 | **진입 경로** | 상세 페이지 "이 종목의 모든 리서치 보기" 링크, 직접 URL 접근 |
 | **사용자 행동** | 목표가/매수가 추이 차트 확인, 투자의견 변화 타임라인 확인, 각 시점 분석 요약 비교, 특정 시점 상세 페이지로 이동 |
-| **주요 기능** | • 종목 기본 정보 헤더 (종목명, 티커, 섹터)<br>• 목표가(AI) + 전문가 매수가(Strategist) 통합 line chart (Chart.js, x축: publishedAt, y축: 가격, 단일 통화만 렌더링 — 혼재 시 경고 메시지)<br>• 현재 페이지 데이터 포인트에 "현재 페이지" 레이블 박스 + 화살표 표시 (source별 해당 라인 추적)<br>• 투자의견 변화 타임라인 (날짜별 매수/관망/매도 배지)<br>• 리서치 시계열 목록 (날짜, 소스, 투자의견, 가격+통화단위, 요약, 상세 링크)<br>• 차트 데이터 접근성용 `<table>` 병기<br>• 면책 문구 푸터 |
+| **주요 기능** | • 종목 기본 정보 헤더 (종목명, 티커, 섹터)<br>• 목표가(AI) + 전문가 매수가(Expert) 통합 line chart (Chart.js, x축: publishedAt, y축: 가격, 단일 통화만 렌더링 — 혼재 시 경고 메시지)<br>• 현재 페이지 데이터 포인트에 "현재 페이지" 레이블 박스 + 화살표 표시 (source별 해당 라인 추적)<br>• 투자의견 변화 타임라인 (날짜별 매수/관망/매도 배지)<br>• 리서치 시계열 목록 (날짜, 소스, 투자의견, 가격+통화단위, 요약, 상세 링크)<br>• 차트 데이터 접근성용 `<table>` 병기<br>• 면책 문구 푸터 |
 | **다음 이동** | 리서치 항목 클릭 → 상세 페이지 |
 
 ---
@@ -368,9 +368,9 @@ Notion DB 컬럼명을 아래 영문 key로 생성합니다. 코드에서 `@noti
 | `tags` | Multi-select | 분류 태그 |
 | `opinion` | Select | 투자의견 — 옵션: `매수` / `관망` / `매도` |
 | `target_price` | Number | AI 목표가 (숫자만, 통화는 currency 필드 참조) — AI Research 전용 |
-| `expert_buy_price` | Number | 전문가 매수가 (숫자만) — Strategist Research 전용 |
+| `expert_buy_price` | Number | 전문가 매수가 (숫자만) — Expert Research 전용 |
 | `currency` | Select | 통화 단위 — 옵션: `KRW` / `USD` |
-| `source` | Select | 리서치 소스 — 옵션: `ai` / `strategist` |
+| ~~`source`~~ | *(없음)* | DB 분리로 제거 — 조회 DB에 따라 코드에서 자동 주입 (`ai` / `expert`) |
 | `summary` | Rich Text | 한 줄 요약 (50자 이내) |
 | `published_at` | Date | 분석 수행 날짜 (ISO 8601) |
 | `status` | Select | 상태 — 옵션: `draft` / `published` |
@@ -412,14 +412,15 @@ export const CURRENCY = {
 | stock_name | 정확한 공식 종목명 (히스토리 추적 키, 일관성 필수) |
 | ticker | 국내: 6자리 숫자, 해외: 알파벳 티커 (예: `005930`, `AAPL`) — 표기 일관성 필수 |
 | opinion | `매수` / `관망` / `매도` 중 정확히 하나 |
-| target_price | AI Research 전용 — 숫자만 (통화 단위는 currency 필드에 별도 저장). Strategist는 비워둠 |
-| expert_buy_price | Strategist Research 전용 — 전문가 매수가 숫자만. AI Research는 비워둠 |
-| source | `ai` (Claude 생성) 또는 `strategist` (전문가 의견) 중 하나 — 반드시 지정 |
+| target_price | AI Research 전용 — 숫자만 (통화 단위는 currency 필드에 별도 저장). Expert는 비워둠 |
+| expert_buy_price | Expert Research 전용 — 전문가 매수가 숫자만. AI Research는 비워둠 |
+| source | DB 분리로 Notion 컬럼 불필요 — AI DB 조회 시 `'ai'`, Expert DB 조회 시 `'expert'` 자동 주입 |
 | currency | `KRW` 또는 `USD` |
 | summary | 50자 이내 한 줄 요약 |
 | published_at | 분석 수행 날짜 (ISO 8601 형식) |
 | status | 반드시 `draft` 로 저장 (발행은 사용자가 직접 변경) |
-| ai_model | AI Research: 사용한 Claude 모델명 (예: `Claude Opus 4.7`) / Strategist: 증권사명 (예: `삼성증권`) |
+| ai_model | AI DB 전용 — 사용한 Claude 모델명 (예: `Claude Opus 4.7`) |
+| firm | Expert DB 전용 — 증권사·분석가명 (예: `삼성증권`) |
 
 ### 본문 필수 포함 사항
 
@@ -447,13 +448,13 @@ Notion DB가 단일 데이터 소스이므로 별도 DB는 없음. 아래는 Not
 | tags | 분류 태그 | string[] |
 | opinion | 투자의견 (코드 내부 enum) | 'BUY' \| 'HOLD' \| 'SELL' |
 | targetPrice | 목표가 (AI Research 주지표) | number |
-| expertBuyPrice | 전문가 매수가 (Strategist Research 주지표) | number \| null |
+| expertBuyPrice | 전문가 매수가 (Expert Research 주지표) | number \| null |
 | currency | 통화 단위 | 'KRW' \| 'USD' |
 | summary | 한 줄 요약 | string |
 | publishedAt | 발행일 | Date |
 | status | 상태 | 'draft' \| 'published' |
-| aiModel | 사용 AI 모델명 (AI Research) / 증권사명 (Strategist) | string |
-| source | 리서치 소스 구분 | 'ai' \| 'strategist' |
+| aiModel | 사용 AI 모델명 (AI Research) / 증권사명 (Expert) | string |
+| source | 리서치 소스 구분 | 'ai' \| 'expert' |
 
 ### StockHistory (클라이언트 집계용 파생 타입)
 
