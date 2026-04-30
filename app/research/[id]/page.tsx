@@ -1,4 +1,4 @@
-import { getMockResearchById, getMockStockHistory } from '@/lib/mocks/research'
+import { getResearchById, listResearchesByTicker } from '@/lib/notion/queries'
 import { notFound } from 'next/navigation'
 import { formatPrice, formatDate } from '@/lib/formatters'
 import { OpinionBadge } from '@/components/research/OpinionBadge'
@@ -57,14 +57,13 @@ export default async function ResearchPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const research = getMockResearchById(id)
+  const research = await getResearchById(id)
 
   if (!research) {
     notFound()
   }
 
-  const stockHistory = getMockStockHistory(research.ticker)
-  const historyResearches = stockHistory?.researches ?? [research]
+  const historyResearches = await listResearchesByTicker(research.ticker)
 
   // 차트용: 오름차순 / 카드 목록용: 내림차순, 현재 리서치 제외
   const relatedResearches = [...historyResearches]

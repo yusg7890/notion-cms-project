@@ -1,4 +1,4 @@
-import { getMockResearches } from '@/lib/mocks/research'
+import { listResearches } from '@/lib/notion/queries'
 import { ResearchCard } from '@/components/research/ResearchCard'
 import { FilterBarWrapper } from '@/components/research/FilterBarWrapper'
 import { EmptyState } from '@/components/research/EmptyState'
@@ -17,7 +17,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     ? tagsParam.split(',').filter(Boolean)
     : []
 
-  const allResearches = getMockResearches('ai')
+  const allResearches = await listResearches('ai')
 
   // 고유 섹터 목록 추출 (FilterBar 옵션용)
   const sectors = Array.from(

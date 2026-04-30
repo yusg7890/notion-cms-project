@@ -1,4 +1,4 @@
-import { getMockResearches } from '@/lib/mocks/research'
+import { listResearches } from '@/lib/notion/queries'
 import { ResearchCard } from '@/components/research/ResearchCard'
 import { FilterBarWrapper } from '@/components/research/FilterBarWrapper'
 import { EmptyState } from '@/components/research/EmptyState'
@@ -15,7 +15,7 @@ export default async function ExpertPage({ searchParams }: ExpertPageProps) {
   const currentSector = sector || 'all'
   const currentTags = tagsParam ? tagsParam.split(',').filter(Boolean) : []
 
-  const allResearches = getMockResearches('expert')
+  const allResearches = await listResearches('expert')
 
   const sectors = Array.from(new Set(allResearches.map((r) => r.sector))).sort()
 

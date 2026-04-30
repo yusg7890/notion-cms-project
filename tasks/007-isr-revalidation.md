@@ -27,32 +27,38 @@ Task 006 완료 후 실제 데이터를 사용하는 페이지들에 캐싱 전�
 
 ## 구현 단계
 
-- [ ] 1. 페이지 ISR 설정 및 목 데이터 → Notion 데이터 교체
+- [x] 1. 페이지 ISR 설정 및 목 데이터 → Notion 데이터 교체
   - `app/page.tsx`: `export const revalidate = 3600`, `listResearches('ai')` 호출로 교체
   - `app/expert/page.tsx`: `export const revalidate = 3600`, `listResearches('expert')` 호출로 교체
-  - `app/research/[id]/page.tsx`: `export const revalidate = 86400`, `getResearchById(id)` 호출로 교체
-  - `app/stocks/[ticker]/page.tsx`: `export const revalidate = 3600`, `listResearchesByTicker(ticker)` 호출로 교체
+  - `app/research/[id]/page.tsx`: `export const revalidate = 86400`, `getResearchById(id)` + `listResearchesByTicker(ticker)` 호출로 교체
+  - `app/stocks/[ticker]/page.tsx`: `export const revalidate = 3600`, `listResearchesByTicker(ticker)` 호출로 교체, Research[] → StockHistory 필드 파생
   - `app/search/page.tsx`: `getAllResearches()` 호출로 교체 (클라이언트 필터링 유지)
 
-- [ ] 2. `app/api/revalidate/route.ts` 구현
+- [x] 2. `app/api/revalidate/route.ts` 구현
   - `POST` 핸들러: `secret` searchParam 검증 (`REVALIDATE_SECRET` 환경 변수 비교)
   - 401 반환 시 `{ message: 'Invalid token' }`
   - `revalidateTag(CACHE_TAGS.RESEARCH_LIST, 'max')` 호출
   - 선택적으로 `tag` searchParam으로 특정 태그만 재검증 가능
   - 200 반환 시 `{ revalidated: true, tag: '...' }`
 
-- [ ] 3. 페이지에 cacheTag 적용 (선택)
-  - `unstable_cache` 또는 `cacheTag` 활용 고려
-  - 현재 단계에서는 segment revalidate만으로 충분
+- [x] 3. 페이지에 cacheTag 적용 (선택)
+  - 현재 단계에서는 segment revalidate만으로 충분 (skip)
 
-- [ ] 4. Notion 연동 오류 처리
-  - Notion API 실패 시 페이지가 빈 목록을 표시하도록 try-catch 처리
-  - 에러 바운더리(`error.tsx`)가 Notion 장애를 적절히 처리하는지 확인
+- [x] 4. Notion 연동 오류 처리
+  - queries.ts 각 함수가 try-catch로 에러 시 빈 배열 반환
+  - 에러 바운더리(`error.tsx`) 존재 확인 완료
 
 ## 테스트 체크리스트 (Playwright MCP)
 
-- [ ] 유효한 토큰으로 `POST /api/revalidate?secret=TOKEN` 호출 시 200 반환
-- [ ] 잘못된 토큰으로 호출 시 401 반환
-- [ ] `secret` 파라미터 누락 시 401 반환
-- [ ] 메인 페이지에서 실제 Notion 데이터 표시 확인
-- [ ] Notion API 장애 시 에러 페이지 대신 빈 목록 표시
+- [x] 유효한 토큰으로 `POST /api/revalidate?secret=TOKEN` 호출 시 200 반환
+- [x] 잘못된 토큰으로 호출 시 401 반환
+- [x] `secret` 파라미터 누락 시 401 반환
+- [x] 메인 페이지에서 실제 Notion 데이터 표시 확인
+- [ ] Notion API 장애 시 에러 페이지 대신 빈 목록 표시 (queries.ts try-catch로 보장, 실제 장애 시나리오 시뮬레이션 생략)
+
+## 변경 사항 요약
+
+- `app/api/revalidate/route.ts`: stub → 실제 구현 (secret 검증 + revalidateTag 호출)
+- `app/page.tsx`, `app/expert/page.tsx`, `app/search/page.tsx`: getMockResearches → Notion queries 교체
+- `app/research/[id]/page.tsx`: getMockResearchById/getMockStockHistory → getResearchById/listResearchesByTicker 교체
+- `app/stocks/[ticker]/page.tsx`: getMockStockHistory → listResearchesByTicker 교체, Research[] 기반으로 StockHistory 필드 직접 파생

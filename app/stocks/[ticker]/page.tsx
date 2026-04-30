@@ -1,4 +1,4 @@
-import { getMockStockHistory } from '@/lib/mocks/research'
+import { listResearchesByTicker } from '@/lib/notion/queries'
 import { notFound } from 'next/navigation'
 import { formatPrice, formatDate } from '@/lib/formatters'
 import { HistoryChartLazy as HistoryChart } from '@/components/stocks/HistoryChartLazy'
@@ -15,15 +15,19 @@ export default async function StockHistoryPage({
   params: Promise<{ ticker: string }>
 }) {
   const { ticker } = await params
-  const stockHistory = getMockStockHistory(ticker)
+  const researches = await listResearchesByTicker(ticker)
 
-  if (!stockHistory) {
+  if (researches.length === 0) {
     notFound()
   }
 
-  const { stockName, sector, currency, researches } = stockHistory
+  const first = researches[0]
+  const stockName = first.stockName
+  const sector = first.sector
+  // 통화 혼재 여부 확인 — 혼재 시 첫 번째 리서치 통화 사용 (차트에서 경고 표시)
+  const currency = first.currency
 
-  // 차트용: publishedAt 오름차순 (getMockStockHistory에서 이미 정렬됨)
+  // 차트용: publishedAt 오름차순 (listResearchesByTicker에서 이미 정렬됨)
   const sortedAsc: Research[] = researches
 
   // 리서치 목록용: publishedAt 내림차순

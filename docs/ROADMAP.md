@@ -136,7 +136,7 @@ Research Archive는 개인 투자자·학습자를 위한 **투자 리서치 시
 
 ### Phase 3: 핵심 기능 구현
 
-- **Task 006: Notion 클라이언트 및 데이터 매퍼 구현** - 우선순위
+- **Task 006: Notion 클라이언트 및 데이터 매퍼 구현** ✅ - 완료
   - `@notionhq/client` 초기화 (`lib/notion/client.ts`) — 토큰/DB ID 환경 변수 주입
   - Notion Page → `Research` 매퍼 (`lib/notion/mappers.ts`) — `source`, `expert_buy_price` 포함 전 Property Key 영문 스키마 준수
   - `listResearches(source?: 'ai' | 'expert')` — source 필터 + status=published, published_at desc 정렬
@@ -152,18 +152,11 @@ Research Archive는 개인 투자자·학습자를 위한 **투자 리서치 시
     - [ ] Expert 리서치 조회 응답에 `source: 'expert'`, `expertBuyPrice` 필드 존재
     - [ ] p-limit 동시성 3 설정하에 연속 호출 throttling 확인
 
-- **Task 007: ISR + On-demand Revalidation 및 API 라우트 구현**
-  - 각 페이지에 `export const revalidate = 3600` 적용 (메인/상세/히스토리)
-  - `revalidateTag('research-list', 'hours')`, `revalidateTag('research:<id>', 'hours')` — **두 번째 인자 필수**
-  - `/api/revalidate` 라우트 핸들러 (`app/api/revalidate/route.ts`) — 시크릿 토큰 검증 + tag/path 선택 재검증
-  - `proxy.ts` (구 middleware) — `/api/revalidate` 레이트 리밋 및 시크릿 검증 보조
-  - Cache Components 태그 전략 문서화 (`docs/caching.md`)
-  - **테스트 체크리스트** (Playwright MCP)
-    - [ ] 유효한 토큰으로 `/api/revalidate?tag=research-list` 호출 시 200 반환
-    - [ ] 잘못된 토큰 시 401 반환
-    - [ ] 재검증 이후 메인 페이지 새로고침 시 갱신 데이터 표시
-    - [ ] `revalidateTag` 두 번째 인자 누락 시 빌드/런타임 에러 재현 가능성 차단
-    - [ ] 상세 페이지 tag 기반 부분 재검증 동작 확인
+- **Task 007: ISR + On-demand Revalidation 및 API 라우트 구현** ✅ - 완료
+  - 각 페이지에 `export const revalidate` 적용 (메인·Expert·히스토리 3600, 상세 86400, 검색 0)
+  - `/api/revalidate` 라우트 핸들러 구현 — secret 토큰 검증, `revalidateTag(tag, 'max')` 호출
+  - 모든 페이지에서 목 데이터 제거, `listResearches` / `getResearchById` / `listResearchesByTicker` / `getAllResearches` 연결
+  - Playwright MCP 테스트 통과: 401/200 반환, 메인 페이지 실제 Notion 데이터 표시, 통합 검색 동작 확인
 
 - **Task 008: Notion 본문 렌더링 (notion-to-md + react-markdown)**
   - `notion-to-md` 인스턴스 구성 및 커스텀 변환 규칙 (콜아웃, 토글, 코드블록)

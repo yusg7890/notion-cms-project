@@ -4,18 +4,18 @@ import { NOTION_PROPERTIES, OPINION_MAP, type OpinionLabel } from './constants'
 
 type Props = PageObjectResponse['properties']
 
-/** Rich Text 배열에서 plain_text 추출 */
+/** Rich Text 배열에서 plain_text 추출 (앞뒤 공백 제거) */
 function getRichText(props: Props, key: string): string {
   const prop = props[key]
   if (!prop || prop.type !== 'rich_text') return ''
-  return prop.rich_text.map((t) => t.plain_text).join('')
+  return prop.rich_text.map((t) => t.plain_text).join('').trim()
 }
 
-/** Title 속성에서 plain_text 추출 */
+/** Title 속성에서 plain_text 추출 (앞뒤 공백 제거) */
 function getTitle(props: Props, key: string): string {
   const prop = props[key]
   if (!prop || prop.type !== 'title') return ''
-  return prop.title.map((t) => t.plain_text).join('')
+  return prop.title.map((t) => t.plain_text).join('').trim()
 }
 
 /** Select 속성값 추출 */
@@ -39,11 +39,20 @@ function getMultiSelect(props: Props, key: string): string[] {
   return prop.multi_select.map((s) => s.name)
 }
 
-/** Number 속성값 추출 */
+/** Number 속성값 추출 — Notion 컬럼 타입이 Number 또는 rich_text(숫자 문자열) 모두 지원 */
 function getNumber(props: Props, key: string): number | undefined {
   const prop = props[key]
-  if (!prop || prop.type !== 'number' || prop.number === null) return undefined
-  return prop.number
+  if (!prop) return undefined
+  if (prop.type === 'number') {
+    return prop.number ?? undefined
+  }
+  // Notion DB에서 rich_text로 생성된 경우 파싱
+  if (prop.type === 'rich_text') {
+    const text = prop.rich_text.map((t) => t.plain_text).join('').trim()
+    const parsed = parseFloat(text.replace(/,/g, ''))
+    return isNaN(parsed) ? undefined : parsed
+  }
+  return undefined
 }
 
 /** Date 속성값을 Date 객체로 추출 */
