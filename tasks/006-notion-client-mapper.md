@@ -27,42 +27,53 @@ Phase 3의 핵심 기반 작업. Notion API를 통해 실제 리서치 데이터
 
 ## 구현 단계
 
-- [ ] 1. 패키지 설치
+- [x] 1. 패키지 설치
   - `npm install @notionhq/client p-limit`
   - `package.json` 의존성 추가 확인
 
-- [ ] 2. `lib/notion/constants.ts` 수정
+- [x] 2. `lib/notion/constants.ts` 수정
   - `NOTION_PROPERTIES`에 `SOURCE: 'source'`, `EXPERT_BUY_PRICE: 'expert_buy_price'` 추가
+  - (이미 완료된 상태였음)
 
-- [ ] 3. `lib/notion/client.ts` 생성
+- [x] 3. `lib/notion/client.ts` 생성
   - `@notionhq/client` Client 초기화 — `NOTION_TOKEN` 환경 변수 주입
   - 환경 변수 누락 시 명시적 에러 throw
   - `NOTION_AI_DB_ID`, `NOTION_EXPERT_DB_ID` 환경 변수 export
 
-- [ ] 4. `lib/schemas/research.ts` 수정
+- [x] 4. `lib/schemas/research.ts` 수정
   - `ResearchSchema`에 `source: z.enum(['ai', 'expert'])`, `expertBuyPrice: z.number().optional()` 추가
   - `targetPrice: z.number().optional()` 로 변경 (Expert는 targetPrice 없음)
 
-- [ ] 5. `lib/notion/mappers.ts` 생성
+- [x] 5. `lib/notion/mappers.ts` 생성
   - `mapAiPageToResearch(page: PageObjectResponse): Research` — AI DB 전용 (source: 'ai' 고정)
   - `mapExpertPageToResearch(page: PageObjectResponse): Research` — Expert DB 전용 (source: 'expert' 고정)
   - `NOTION_PROPERTIES` 상수를 사용해 각 프로퍼티 파싱
   - `opinion`: OPINION_MAP으로 한글 → BUY/HOLD/SELL 변환
   - source는 DB 구분에 따라 매퍼에서 자동 주입 (DB에 source 컬럼 없음)
-  - `targetPrice`: Number 타입 파싱 (없으면 0)
+  - `targetPrice`: Number 타입 파싱 (없으면 undefined)
   - `expertBuyPrice`: Number 타입 파싱 (없으면 undefined)
   - `publishedAt`: Date 파싱
   - `tags`: Multi-select 배열 파싱
   - 필수 필드 누락 시 에러 throw 대신 기본값 처리 (서비스 중단 방지)
 
-- [ ] 6. `lib/notion/queries.ts` 생성
+- [x] 6. `lib/notion/queries.ts` 생성
   - `listResearches(source?: 'ai' | 'expert'): Promise<Research[]>`
-    - filter: status = 'published' + (source 있으면 source 필터 추가)
-    - sort: published_at descending
+    - filter: status = 'published' + published_at desc 정렬
     - p-limit(3) 동시성 제한 적용
   - `getAllResearches(): Promise<Research[]>` — AI + Expert 통합 (검색용)
   - `getResearchById(id: string): Promise<Research | null>` — ID로 단일 조회
   - `listResearchesByTicker(ticker: string): Promise<Research[]>` — ticker 기준 통합 조회 (source 무관)
+  - **주의**: @notionhq/client v5 breaking change 대응
+    - `databases.query` → `dataSources.query`
+    - `database_id` → `data_source_id`
+
+## 변경 사항 요약
+
+- `@notionhq/client@5.20.0`, `p-limit` 패키지 추가
+- `lib/notion/client.ts` 신규 생성 — Notion Client 초기화, 환경 변수 검증
+- `lib/notion/mappers.ts` 신규 생성 — AI/Expert DB 페이지 → Research 타입 변환
+- `lib/notion/queries.ts` 신규 생성 — 4개 조회 함수 (v5 API 대응)
+- `lib/schemas/research.ts` 수정 — source, expertBuyPrice 필드 추가
 
 ## 테스트 체크리스트 (Playwright MCP)
 
