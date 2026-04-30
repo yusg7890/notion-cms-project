@@ -1,4 +1,4 @@
-import { getMockResearches } from '@/lib/mocks/research'
+import { getAllMockResearches } from '@/lib/mocks/research'
 import { SearchInputWrapper } from '@/components/search/SearchInputWrapper'
 import { ResearchCard } from '@/components/research/ResearchCard'
 import { EmptyState } from '@/components/research/EmptyState'
@@ -13,7 +13,7 @@ export default async function SearchPage({
 }) {
   const { q } = await searchParams
 
-  const allResearches = getMockResearches()
+  const allResearches = getAllMockResearches()
 
   // 검색어가 있을 때 종목명·티커·태그 기준으로 필터링 (대소문자 무시)
   const filtered = q

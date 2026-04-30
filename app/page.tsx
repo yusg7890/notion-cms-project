@@ -17,7 +17,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     ? tagsParam.split(',').filter(Boolean)
     : []
 
-  const allResearches = getMockResearches()
+  const allResearches = getMockResearches('ai')
 
   // 고유 섹터 목록 추출 (FilterBar 옵션용)
   const sectors = Array.from(

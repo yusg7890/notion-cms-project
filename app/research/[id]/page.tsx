@@ -128,7 +128,11 @@ export default async function ResearchPage({
       <section className='mb-6'>
         <h2 className='text-base font-semibold mb-3'>목표가 추이</h2>
         <div className='rounded-lg border p-4 bg-background'>
-          <HistoryChart researches={historyResearches} highlightId={research.id} />
+          <HistoryChart
+            researches={historyResearches}
+            highlightId={research.id}
+            highlightLine={research.source === 'strategist' ? 'expert' : 'target'}
+          />
         </div>
       </section>
 
