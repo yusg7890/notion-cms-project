@@ -89,27 +89,35 @@ export default async function ResearchPage({
       {/* 메타 정보 카드 */}
       <div className='bg-muted/50 rounded-lg p-4 mb-6'>
         <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-          {/* 목표가 + 전문가 매수가 */}
+          {/* 가격 정보: source에 따라 목표가 또는 전문가 매수가 표시 */}
           <div className='flex items-end gap-6'>
-            <div className='flex flex-col gap-0.5'>
-              <span className='text-xs text-muted-foreground'>목표가</span>
-              <span className='text-xl font-bold'>
-                {formatPrice(research.targetPrice, research.currency)}
-              </span>
-            </div>
-            {research.expertBuyPrice != null && (
+            {research.source === 'expert' ? (
               <div className='flex flex-col gap-0.5'>
                 <span className='text-xs text-muted-foreground'>전문가 매수가</span>
                 <span className='text-xl font-bold text-amber-500'>
-                  {formatPrice(research.expertBuyPrice, research.currency)}
+                  {research.expertBuyPrice != null
+                    ? formatPrice(research.expertBuyPrice, research.currency)
+                    : '-'}
+                </span>
+              </div>
+            ) : (
+              <div className='flex flex-col gap-0.5'>
+                <span className='text-xs text-muted-foreground'>목표가</span>
+                <span className='text-xl font-bold'>
+                  {research.targetPrice != null
+                    ? formatPrice(research.targetPrice, research.currency)
+                    : '-'}
                 </span>
               </div>
             )}
           </div>
-          {/* 발행일 + AI 모델 */}
+          {/* 발행일 + 출처 */}
           <div className='flex flex-col gap-1 text-sm text-muted-foreground sm:text-right'>
             <span>발행일: {formatDate(research.publishedAt)}</span>
-            <span>분석 모델: {research.aiModel}</span>
+            <span>
+              {research.source === 'expert' ? '증권사: ' : '분석 모델: '}
+              {research.aiModel}
+            </span>
           </div>
         </div>
         {/* 태그 목록 */}
@@ -131,7 +139,7 @@ export default async function ResearchPage({
           <HistoryChart
             researches={historyResearches}
             highlightId={research.id}
-            highlightLine={research.source === 'strategist' ? 'expert' : 'target'}
+            highlightLine={research.source === 'expert' ? 'expert' : 'target'}
           />
         </div>
       </section>

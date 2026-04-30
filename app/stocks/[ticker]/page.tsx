@@ -63,7 +63,7 @@ export default async function StockHistoryPage({
             {sortedAsc.map((r) => (
               <tr key={r.id}>
                 <td>{formatDate(r.publishedAt)}</td>
-                <td>{formatPrice(r.targetPrice, currency)}</td>
+                <td>{r.targetPrice != null ? formatPrice(r.targetPrice, currency) : '-'}</td>
                 <td>{r.opinion}</td>
                 <td>{r.summary}</td>
               </tr>
