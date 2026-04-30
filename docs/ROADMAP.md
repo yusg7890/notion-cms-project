@@ -1,16 +1,18 @@
-# AI Stock Research Archive 개발 로드맵
+# Research Archive 개발 로드맵
 
-Claude가 생성한 종목 분석 리서치를 Notion에 축적하고, 동일 종목의 투자의견/목표가 변화를 시계열로 추적하는 개인 투자 학습 아카이브.
+전문가 전략가의 종목 추천(Strategist Research)과 Claude AI 분석(AI Research)을 Notion에 축적하고, 동일 종목의 투자의견·전문가 매수가·목표가 변화를 시계열로 추적하는 개인 투자 학습 아카이브. **Strategist Research가 주된 사용 케이스**.
 
 ## 개요
 
-AI Stock Research Archive는 개인 투자자·학습자를 위한 **AI 리서치 시계열 기록 플랫폼**으로 다음 기능을 제공합니다:
+Research Archive는 개인 투자자·학습자를 위한 **투자 리서치 시계열 기록 플랫폼**으로 다음 기능을 제공합니다:
 
-- **리서치 목록 및 필터링**: 최신순 카드 그리드에서 섹터/태그 기반 빠른 탐색 제공
-- **리서치 상세 열람**: Notion 본문을 Markdown으로 렌더링하여 풍부한 분석 콘텐츠 표시
-- **종목 시계열 추적**: 동일 종목의 투자의견·목표가 변화를 recharts 라인 차트로 시각화
-- **검색 및 탐색**: 종목명/태그 키워드 기반 전체 아카이브 검색
-- **Notion CMS 연동**: Claude가 생성한 리서치를 Notion에 저장하고 ISR + On-demand Revalidation으로 웹에 반영
+- **Strategist Research 목록** (주된 사용 케이스): 전문가 매수가 중심 황색 카드 그리드 (`/strategist`)
+- **AI Research 목록** (보조 사용 케이스): Claude AI 목표가 중심 보라색 카드 그리드 (`/`)
+- **통합 검색**: AI + Strategist 리서치를 종목명/태그로 통합 검색
+- **리서치 상세 열람**: Notion 본문을 Markdown으로 렌더링, source별 차별화된 메타 정보 표시
+- **종목 시계열 추적**: AI 목표가 + 전문가 매수가를 동일 Chart.js 차트에서 비교, "현재 페이지" 화살표 표시
+- **좌측 사이드바 내비게이션**: sticky 사이드바에 AI Research / Strategist Research / 검색 버튼
+- **Notion CMS 연동**: Notion에 저장된 리서치를 ISR + On-demand Revalidation으로 웹에 반영
 
 ## 개발 워크플로우
 
@@ -86,46 +88,68 @@ AI Stock Research Archive는 개인 투자자·학습자를 위한 **AI 리서�
 
 ### Phase 2: UI/UX 완성 (더미 데이터 활용)
 
-- **Task 003: 공통 컴포넌트 라이브러리 및 디자인 시스템 구축**
-  - shadcn/ui 필요 컴포넌트 설치 (Card, Badge, Input, Select, Tabs, Skeleton 등)
-  - @hugeicons/react 아이콘 래퍼 및 공통 아이콘 프리셋 구축
-  - 투자의견 Badge 컴포넌트 (매수/관망/매도 색상 토큰 정의)
+- **Task 003: 공통 컴포넌트 라이브러리 및 디자인 시스템 구축** ✅ - 완료
+  - shadcn/ui 필요 컴포넌트 설치 (Badge, Input, Select, Skeleton 등)
+  - 투자의견 Badge 컴포넌트 (`OpinionBadge`) — 매수/관망/매도 색상 토큰 정의
+  - 시가총액 Badge 컴포넌트 (`MarketCapBadge`) — 대형/중형/소형 구분
   - 목표가 포맷터 유틸 (`formatPrice(value, currency)`) — KRW/USD 처리
   - 날짜 포맷터 유틸 (`formatDate`) 및 상대시간 유틸
-  - 더미 데이터 팩토리 (`lib/mocks/research.ts`) — 20~30건 샘플 리서치 + 2~3개 종목 히스토리
-  - 디자인 토큰 및 다크 모드(선택) 확인
+  - 더미 데이터 팩토리 (`lib/mocks/research.ts`) — AI Research 20건 + Strategist Research 5건 + 종목 히스토리
+  - 다크 모드 테마 토글 구현
 
-- **Task 004: 메인 페이지 UI 완성 (카드 그리드 + 필터)**
-  - 리서치 카드 컴포넌트 (`ResearchCard`) — 썸네일, 종목명, 티커, 투자의견, 목표가, 요약, 태그
+- **Task 004: AI Research 페이지 UI 완성 (카드 그리드 + 필터)** ✅ - 완료
+  - `ResearchCard` — source별 차별화 (보라색 AI / 황색 Strategist), 소스 레이블, 날짜/투자의견, 목표가·매수가 pill 테두리
   - 카드 그리드 레이아웃 (반응형 1→2→3 컬럼)
   - 섹터 필터 Select + 태그 Multi-select (클라이언트 필터링, URL searchParams 동기화)
   - 빈 상태(Empty State) 및 스켈레톤 UI
   - 더미 데이터 기반 최신순 정렬 동작 확인
-  - 모바일 필터 시트(Drawer) 대응
 
-- **Task 005: 상세/히스토리/검색 페이지 UI 완성**
-  - `/research/[id]` — Notion 본문 영역 placeholder(react-markdown 목업), 헤더 메타 정보, 면책 문구 배너
-  - `/stocks/[ticker]` — 종목 요약 카드 + recharts 라인 차트 스켈레톤 (더미 시계열 데이터) + 관련 리서치 타임라인
-  - `/search` — 검색 인풋, 결과 리스트, 검색어 하이라이트, 최근 검색어(로컬 저장소 기반)
+- **Task 004-S: Strategist Research 페이지 UI 완성** ✅ - 완료
+  - `/strategist` 페이지 생성 — AI Research 페이지와 동일 구조, 전문가 매수가 중심
+  - Strategist 더미 데이터 5건 생성 (삼성증권/Goldman Sachs/Morgan Stanley/KB증권/JP Morgan)
+  - `getMockResearches(source)` — source별 필터링 함수로 리팩토링
+  - `getAllMockResearches()` — AI + Strategist 통합 검색용 함수 추가
+  - `getMockResearchById` / `getMockStockHistory` — `ALL_MOCK_RESEARCHES` 기준으로 통합
+
+- **Task 005: 상세/히스토리/검색 페이지 UI 완성** ✅ - 완료
+  - `/research/[id]` — Notion 본문 영역 placeholder(react-markdown 목업), 헤더 메타 정보, source별 가격 표시 (AI: 목표가, Strategist: 매수가)
+  - `/stocks/[ticker]` — 종목 요약 카드 + Chart.js 라인 차트 (더미 시계열 데이터, AI 목표가 + 전문가 매수가 동기화) + 관련 리서치 타임라인
+  - `/search` — 검색 인풋, AI + Strategist 통합 결과 리스트
   - 404/에러 UI 통일 (not-found.tsx, error.tsx)
-  - 반응형/접근성 점검 (키보드 네비게이션, aria-label)
   - 전체 사용자 플로우 네비게이션 검증
+
+- **Task 005-S: 사이드바 내비게이션 구현** ✅ - 완료
+  - `components/common/Sidebar.tsx` 생성 — sticky 좌측 사이드바
+  - 사이트 제목 "Research Archive" → `/` 링크
+  - nav 항목: AI Research (`/`), Strategist Research (`/strategist`), 검색 (`/search`)
+  - `usePathname` 기반 active 상태 표시
+  - 하단 테마 토글 버튼
+  - `app/layout.tsx` — 헤더 제거, `flex` body에 Sidebar + 콘텐츠 영역 배치
+
+- **Task 005-C: 차트 하이라이트 및 UX 개선** ✅ - 완료
+  - `HistoryChart`: `highlightLine?: 'target' | 'expert'` prop 추가 — source별 해당 라인 추적
+  - `afterDraw` 플러그인: 수직 점선 제거, 현재 데이터 포인트 위에 "현재 페이지" 레이블 박스 + 하향 화살표
+  - `chartjs-plugin-zoom` 줌/팬 지원
+  - `ResearchCard`: BarChart2 아이콘 제거, 소스 레이블 추가, 날짜 위치 이동, 목표가/매수가 레이블에 pill 테두리 적용
+  - AI Research 카드: 보라색(violet) 그라데이션 적용
+  - 검색 페이지: `getAllMockResearches()` 기반 AI + Strategist 통합 검색
 
 ### Phase 3: 핵심 기능 구현
 
 - **Task 006: Notion 클라이언트 및 데이터 매퍼 구현** - 우선순위
   - `@notionhq/client` 초기화 (`lib/notion/client.ts`) — 토큰/DB ID 환경 변수 주입
-  - Notion Page → `Research` 매퍼 (`lib/notion/mappers.ts`) — 전 Property Key 영문 스키마 준수
-  - 리스트 조회 함수 (`listResearches`) — 필터(status=published), 정렬(published_at desc), 페이지네이션
-  - 단일 조회 함수 (`getResearchById`)
-  - 티커 기반 조회 (`listResearchesByTicker`) — 히스토리 페이지용
+  - Notion Page → `Research` 매퍼 (`lib/notion/mappers.ts`) — `source`, `expert_buy_price` 포함 전 Property Key 영문 스키마 준수
+  - `listResearches(source?: 'ai' | 'strategist')` — source 필터 + status=published, published_at desc 정렬
+  - `getAllResearches()` — AI + Strategist 통합 조회 (검색 페이지용)
+  - 단일 조회 함수 (`getResearchById`) — AI/Strategist 통합 조회
+  - 티커 기반 조회 (`listResearchesByTicker`) — 히스토리 페이지용 (source 무관)
   - **p-limit** 적용한 블록 병렬 조회 유틸 — Notion Rate Limit(초당 3req) 대응
   - 이미지 URL 만료 대응 전략: 서버 측에서 S3/Cloudinary 재업로드 또는 Next.js Image `unoptimized` + 재검증 주기 단축
   - **테스트 체크리스트** (Playwright MCP)
     - [ ] Notion 토큰 미설정 시 명확한 에러 반환
     - [ ] 잘못된 DB ID 요청 시 500 에러 대신 사용자 친화 메시지
-    - [ ] 리스트 조회 응답이 `Research` 타입 스키마 준수
-    - [ ] 이미지가 포함된 페이지 상세 렌더링 시 broken image 없음
+    - [ ] AI 리서치 조회 응답에 `source: 'ai'`, `targetPrice` 필드 존재
+    - [ ] Strategist 리서치 조회 응답에 `source: 'strategist'`, `expertBuyPrice` 필드 존재
     - [ ] p-limit 동시성 3 설정하에 연속 호출 throttling 확인
 
 - **Task 007: ISR + On-demand Revalidation 및 API 라우트 구현**
@@ -153,15 +177,18 @@ AI Stock Research Archive는 개인 투자자·학습자를 위한 **AI 리서�
     - [ ] 외부 링크 새 탭 및 rel 속성 확인
     - [ ] 긴 문서 스크롤 성능 이상 없음
 
-- **Task 009: 종목 히스토리 시계열 차트 구현 (recharts)**
-  - `StockHistory` 집계 로직 (`lib/aggregate/stock-history.ts`) — 동일 ticker 기준 그룹핑, published_at 정렬
-  - recharts LineChart — X축: 날짜, Y축: 목표가, 툴팁: 투자의견/요약
+- **Task 009: 종목 히스토리 시계열 차트 구현 (Chart.js)**
+  - `StockHistory` 집계 로직 (`lib/aggregate/stock-history.ts`) — 동일 ticker 기준 그룹핑, AI + Strategist 통합, published_at 정렬
+  - Chart.js LineChart — X축: 날짜, Y축: 가격, 파란색(target) + 황색(expertBuy) 두 라인
+  - `highlightLine: 'target' | 'expert'` — source별 해당 라인에 "현재 페이지" 레이블 표시
   - 통화(Currency) 혼재 시 경고 및 기준 통화 선택 UX
   - 데이터 포인트 클릭 → 해당 리서치 상세로 이동
-  - 차트 하단 리서치 타임라인(카드 리스트) 표시
+  - 차트 하단 리서치 타임라인(source 구분 카드 리스트) 표시
   - **테스트 체크리스트** (Playwright MCP)
-    - [ ] 단일 포인트 종목도 렌더링 가능
+    - [ ] AI 단일 포인트 종목도 렌더링 가능
+    - [ ] Strategist 단일 포인트 종목도 렌더링 가능
     - [ ] 포인트 클릭 시 상세 페이지 이동
+    - [ ] AI + Strategist 혼합 종목에서 두 라인 모두 표시
     - [ ] 통화 불일치 케이스에서 경고 노출
     - [ ] 빈 히스토리 티커 접근 시 404 처리
 
