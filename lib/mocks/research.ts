@@ -456,104 +456,99 @@ export const MOCK_RESEARCHES: Research[] = [
   },
 ]
 
-// ─── Strategist Research 더미 데이터 ────────────────────────────────────────
-const MOCK_STRATEGIST: Research[] = [
+// ─── Expert Research 더미 데이터 ─────────────────────────────────────────────
+const MOCK_EXPERT: Research[] = [
   {
-    id: 'str-001',
-    title: '삼성전자 전략가 리서치 - 2026-03-20',
+    id: 'exp-001',
+    title: '삼성전자 전문가 리서치 - 2026-03-20',
     stockName: '삼성전자',
     ticker: '005930',
     sector: '반도체',
     tags: ['반도체', 'HBM', '실적'],
     marketCap: 'large',
     opinion: 'BUY',
-    targetPrice: 97000,
     expertBuyPrice: 82000,
     currency: 'KRW',
     summary: 'HBM3E 수주 잔고 사상 최대, 2분기 어닝 서프라이즈 기대',
     publishedAt: monthsAgo(1),
     status: 'published',
     aiModel: '삼성증권 리서치센터',
-    source: 'strategist',
+    source: 'expert',
   },
   {
-    id: 'str-002',
-    title: 'NVIDIA 전략가 리서치 - 2026-02-20',
+    id: 'exp-002',
+    title: 'NVIDIA 전문가 리서치 - 2026-02-20',
     stockName: 'NVIDIA',
     ticker: 'NVDA',
     sector: 'AI반도체',
     tags: ['AI', 'GPU', '데이터센터'],
     marketCap: 'large',
     opinion: 'BUY',
-    targetPrice: 160,
     expertBuyPrice: 130,
     currency: 'USD',
     summary: 'Blackwell GPU 수요 폭발적 증가, 데이터센터 매출 사상 최대 예상',
     publishedAt: monthsAgo(2),
     status: 'published',
     aiModel: 'Goldman Sachs Research',
-    source: 'strategist',
+    source: 'expert',
   },
   {
-    id: 'str-003',
-    title: 'Apple 전략가 리서치 - 2026-01-18',
+    id: 'exp-003',
+    title: 'Apple 전문가 리서치 - 2026-01-18',
     stockName: '애플',
     ticker: 'AAPL',
     sector: 'IT',
     tags: ['빅테크', 'AI', 'iPhone'],
     marketCap: 'large',
     opinion: 'HOLD',
-    targetPrice: 220,
     expertBuyPrice: 195,
     currency: 'USD',
     summary: 'iPhone 17 기대감 선반영, 현 밸류에이션 대비 추가 상승 여력 제한적',
     publishedAt: monthsAgo(3),
     status: 'published',
     aiModel: 'Morgan Stanley Research',
-    source: 'strategist',
+    source: 'expert',
   },
   {
-    id: 'str-004',
-    title: 'SK하이닉스 전략가 리서치 - 2026-04-10',
+    id: 'exp-004',
+    title: 'SK하이닉스 전문가 리서치 - 2026-04-10',
     stockName: 'SK하이닉스',
     ticker: '000660',
     sector: '반도체',
     tags: ['반도체', 'HBM4', 'AI서버'],
     marketCap: 'large',
     opinion: 'BUY',
-    targetPrice: 275000,
     expertBuyPrice: 245000,
     currency: 'KRW',
     summary: 'HBM4 독점 공급 지위 확보, 엔비디아 장기 공급 계약 체결 임박',
     publishedAt: monthsAgo(0),
     status: 'published',
     aiModel: 'KB증권 리서치센터',
-    source: 'strategist',
+    source: 'expert',
   },
   {
-    id: 'str-005',
-    title: 'Microsoft 전략가 리서치 - 2026-02-10',
+    id: 'exp-005',
+    title: 'Microsoft 전문가 리서치 - 2026-02-10',
     stockName: '마이크로소프트',
     ticker: 'MSFT',
     sector: 'IT',
     tags: ['빅테크', 'AI', '클라우드'],
     marketCap: 'large',
     opinion: 'BUY',
-    targetPrice: 510,
     expertBuyPrice: 470,
     currency: 'USD',
     summary: 'Azure AI 매출 3분기 연속 60%+ 성장, Copilot 기업 채택률 예상 상회',
     publishedAt: monthsAgo(2),
     status: 'published',
     aiModel: 'JP Morgan Research',
-    source: 'strategist',
+    source: 'expert',
   },
 ]
 
-/** AI + Strategist 전체 통합 배열 — ID 조회, 히스토리 조회, 검색에 사용 */
-const ALL_MOCK_RESEARCHES = [...MOCK_RESEARCHES, ...MOCK_STRATEGIST]
+/** AI + Expert 전체 통합 배열 — ID 조회, 히스토리 조회, 검색에 사용 */
+const ALL_MOCK_RESEARCHES = [...MOCK_RESEARCHES, ...MOCK_EXPERT]
 
-/** AI·Strategist 전체 리서치 목록 반환 (검색 페이지용) */
+/** AI·Expert 전체 리서치 목록 반환 (검색 페이지용) */
 export function getAllMockResearches(): Research[] {
   return [...ALL_MOCK_RESEARCHES].sort(
     (a, b) => b.publishedAt.getTime() - a.publishedAt.getTime()
@@ -561,20 +556,20 @@ export function getAllMockResearches(): Research[] {
 }
 
 /** 발행일 내림차순으로 정렬된 리서치 목록 반환 — source 미지정 시 'ai' */
-export function getMockResearches(source: 'ai' | 'strategist' = 'ai'): Research[] {
-  const base = source === 'strategist' ? MOCK_STRATEGIST : MOCK_RESEARCHES
+export function getMockResearches(source: 'ai' | 'expert' = 'ai'): Research[] {
+  const base = source === 'expert' ? MOCK_EXPERT : MOCK_RESEARCHES
   return [...base].sort(
     (a, b) => b.publishedAt.getTime() - a.publishedAt.getTime()
   )
 }
 
-/** ID로 단일 리서치 조회 — AI·Strategist 모두 검색 */
+/** ID로 단일 리서치 조회 — AI·Expert 모두 검색 */
 export function getMockResearchById(id: string): Research | undefined {
   return ALL_MOCK_RESEARCHES.find((r) => r.id === id)
 }
 
 /**
- * 티커 기준 종목 히스토리 조회 — AI·Strategist 모두 검색
+ * 티커 기준 종목 히스토리 조회 — AI·Expert 모두 검색
  * researches는 publishedAt 오름차순 정렬 (차트 시계열 표시용)
  * 해당 티커가 없으면 undefined 반환
  */

@@ -3,7 +3,7 @@ export type Currency = 'KRW' | 'USD'
 export type ResearchStatus = 'draft' | 'published'
 export type MarketCap = 'large' | 'mid' | 'small'
 
-export type ResearchSource = 'ai' | 'strategist'
+export type ResearchSource = 'ai' | 'expert'
 
 export interface Research {
   id: string
@@ -14,12 +14,15 @@ export interface Research {
   tags: string[]
   opinion: Opinion
   marketCap: MarketCap
-  targetPrice: number
+  /** AI DB 전용 — Expert DB에는 없음 */
+  targetPrice?: number
+  /** Expert DB 전용 — AI DB에는 없음 */
   expertBuyPrice?: number
   currency: Currency
   summary: string
   publishedAt: Date
   status: ResearchStatus
+  /** AI Research: Claude 모델명 / Expert Research: 증권사·분석가명 */
   aiModel: string
   source?: ResearchSource
 }
