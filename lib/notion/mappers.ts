@@ -25,6 +25,13 @@ function getSelect(props: Props, key: string): string {
   return prop.select.name
 }
 
+/** Notion 기본 Status 속성값 추출 */
+function getStatus(props: Props, key: string): string {
+  const prop = props[key]
+  if (!prop || prop.type !== 'status' || !prop.status) return ''
+  return prop.status.name
+}
+
 /** Multi-select 속성값 배열 추출 */
 function getMultiSelect(props: Props, key: string): string[] {
   const prop = props[key]
@@ -72,7 +79,7 @@ export function mapAiPageToResearch(page: PageObjectResponse): Research {
     currency: parseCurrency(getSelect(props, NOTION_PROPERTIES.CURRENCY)),
     summary: getRichText(props, NOTION_PROPERTIES.SUMMARY),
     publishedAt: getDate(props, NOTION_PROPERTIES.PUBLISHED_AT),
-    status: (getSelect(props, NOTION_PROPERTIES.STATUS) as Research['status']) || 'draft',
+    status: (getStatus(props, NOTION_PROPERTIES.STATUS) as Research['status']) || 'draft',
     aiModel: getRichText(props, NOTION_PROPERTIES.AI_MODEL),
     source: 'ai',
     marketCap: 'large',
@@ -95,7 +102,7 @@ export function mapExpertPageToResearch(page: PageObjectResponse): Research {
     currency: parseCurrency(getSelect(props, NOTION_PROPERTIES.CURRENCY)),
     summary: getRichText(props, NOTION_PROPERTIES.SUMMARY),
     publishedAt: getDate(props, NOTION_PROPERTIES.PUBLISHED_AT),
-    status: (getSelect(props, NOTION_PROPERTIES.STATUS) as Research['status']) || 'draft',
+    status: (getStatus(props, NOTION_PROPERTIES.STATUS) as Research['status']) || 'draft',
     aiModel: getRichText(props, NOTION_PROPERTIES.FIRM),
     source: 'expert',
     marketCap: 'large',

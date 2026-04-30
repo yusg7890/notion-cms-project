@@ -19,7 +19,7 @@ async function fetchAllPages(dataSourceId: string): Promise<PageObjectResponse[]
       data_source_id: dataSourceId,
       filter: {
         property: NOTION_PROPERTIES.STATUS,
-        select: { equals: STATUS.PUBLISHED },
+        status: { equals: STATUS.PUBLISHED },
       },
       sorts: [{ property: NOTION_PROPERTIES.PUBLISHED_AT, direction: 'descending' }],
       start_cursor: cursor,
@@ -81,7 +81,7 @@ export async function getResearchById(id: string): Promise<Research | null> {
 
     const typedPage = page as PageObjectResponse
     const statusProp = typedPage.properties[NOTION_PROPERTIES.STATUS]
-    if (statusProp?.type === 'select' && statusProp.select?.name !== STATUS.PUBLISHED) return null
+    if (statusProp?.type === 'status' && statusProp.status?.name !== STATUS.PUBLISHED) return null
 
     // AI_MODEL 필드 값이 있으면 AI DB, 없으면 Expert DB로 판단
     const aiModelProp = typedPage.properties[NOTION_PROPERTIES.AI_MODEL]
@@ -110,7 +110,7 @@ export async function listResearchesByTicker(ticker: string): Promise<Research[]
         data_source_id: dataSourceId,
         filter: {
           and: [
-            { property: NOTION_PROPERTIES.STATUS, select: { equals: STATUS.PUBLISHED } },
+            { property: NOTION_PROPERTIES.STATUS, status: { equals: STATUS.PUBLISHED } },
             { property: NOTION_PROPERTIES.TICKER, rich_text: { equals: ticker } },
           ],
         },
