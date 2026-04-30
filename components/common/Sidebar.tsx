@@ -8,7 +8,7 @@ import { ThemeToggle } from './ThemeToggle'
 
 const NAV_ITEMS = [
   { href: '/', label: 'AI Research', icon: Brain, exact: true },
-  { href: '/strategist', label: 'Strategist Research', icon: Award, exact: false },
+  { href: '/expert', label: 'Expert Research', icon: Award, exact: false },
   { href: '/search', label: '검색', icon: Search, exact: false },
 ]
 

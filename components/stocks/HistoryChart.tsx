@@ -52,7 +52,9 @@ function getNiceStep(range: number, isKRW: boolean): number {
 interface ChartPoint {
   index: number
   date: string
-  price: number
+  /** targetPrice 없는 Expert 리서치는 null — 차트에서 gap으로 처리 */
+  price: number | null
+  /** expertBuyPrice 없는 AI 리서치는 null — 차트에서 gap으로 처리 */
   expertBuyPrice: number | null
   id: string
   opinion: Opinion
@@ -74,7 +76,7 @@ export function HistoryChart({ researches, highlightId, highlightLine = 'target'
       researches.map((r, i) => ({
         index: i,
         date: formatDate(r.publishedAt).replace(/^\d{2}(\d{2})/, '$1'),
-        price: r.targetPrice,
+        price: r.targetPrice ?? null,
         expertBuyPrice: r.expertBuyPrice ?? null,
         id: r.id,
         opinion: r.opinion,
@@ -109,6 +111,7 @@ export function HistoryChart({ researches, highlightId, highlightLine = 'target'
   const gridColor = isDark ? '#1e293b' : '#e2e8f0'
   const dotStroke = isDark ? '#ffffff' : '#475569'
   const isKRW = uniqueCurrencies[0] === 'KRW'
+  const hasTargetPrice = points.some((d) => d.price != null)
   const hasExpertBuyPrice = points.some((d) => d.expertBuyPrice != null)
 
   const startIndex = Math.max(0, points.length - DEFAULT_WINDOW)
@@ -144,20 +147,24 @@ export function HistoryChart({ researches, highlightId, highlightLine = 'target'
 
   const data: ChartData<'line', { x: number; y: number | null }[]> = {
     datasets: [
-      {
-        label: '목표가',
-        data: points.map((d) => ({ x: d.index, y: d.price })),
-        borderColor: '#3b82f6',
-        backgroundColor: '#3b82f6',
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        pointBorderWidth: 2,
-        pointBorderColor: dotStroke,
-        pointBackgroundColor: '#3b82f6',
-        pointHoverBorderColor: dotStroke,
-        tension: 0,
-        spanGaps: false,
-      },
+      ...(hasTargetPrice
+        ? [
+            {
+              label: '목표가',
+              data: points.map((d) => ({ x: d.index, y: d.price })),
+              borderColor: '#3b82f6',
+              backgroundColor: '#3b82f6',
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              pointBorderWidth: 2,
+              pointBorderColor: dotStroke,
+              pointBackgroundColor: '#3b82f6',
+              pointHoverBorderColor: dotStroke,
+              tension: 0,
+              spanGaps: true,
+            },
+          ]
+        : []),
       ...(hasExpertBuyPrice
         ? [
             {
@@ -165,7 +172,6 @@ export function HistoryChart({ researches, highlightId, highlightLine = 'target'
               data: points.map((d) => ({ x: d.index, y: d.expertBuyPrice })),
               borderColor: '#fbbf24',
               backgroundColor: '#fbbf24',
-              borderDash: [5, 4] as number[],
               pointRadius: 4,
               pointHoverRadius: 6,
               pointBorderWidth: 2,
@@ -173,7 +179,7 @@ export function HistoryChart({ researches, highlightId, highlightLine = 'target'
               pointBackgroundColor: '#fbbf24',
               pointHoverBorderColor: dotStroke,
               tension: 0,
-              spanGaps: false,
+              spanGaps: true,
             },
           ]
         : []),
@@ -254,9 +260,10 @@ export function HistoryChart({ researches, highlightId, highlightLine = 'target'
           label: (item) => {
             const p = points[item.dataIndex]
             if (!p) return ''
-            if (item.datasetIndex === 0)
+            const label = item.dataset.label
+            if (label === '목표가' && p.price != null)
               return ` 목표가: ${formatPrice(p.price, p.currency)}`
-            if (item.datasetIndex === 1 && p.expertBuyPrice != null)
+            if (label === '전문가 매수가' && p.expertBuyPrice != null)
               return ` 전문가 매수가: ${formatPrice(p.expertBuyPrice, p.currency)}`
             return ''
           },
@@ -303,7 +310,8 @@ export function HistoryChart({ researches, highlightId, highlightLine = 'target'
       const pt = points[highlightIndex]
       const rawY = highlightLine === 'expert'
         ? (pt.expertBuyPrice ?? pt.price)
-        : pt.price
+        : (pt.price ?? pt.expertBuyPrice)
+      if (rawY == null) return
       const priceY = scales.y?.getPixelForValue(rawY)
       if (priceY == null) return
 
@@ -368,16 +376,15 @@ export function HistoryChart({ researches, highlightId, highlightLine = 'target'
       {/* 범례 */}
       <div className='flex items-center justify-between mb-3 px-1'>
         <div className='flex items-center gap-4 text-xs text-muted-foreground'>
-          <div className='flex items-center gap-1.5'>
-            <span className='inline-block w-5 h-0.5 bg-blue-500 rounded' />
-            <span>목표가</span>
-          </div>
+          {hasTargetPrice && (
+            <div className='flex items-center gap-1.5'>
+              <span className='inline-block w-5 h-0.5 bg-blue-500 rounded' />
+              <span>목표가</span>
+            </div>
+          )}
           {hasExpertBuyPrice && (
             <div className='flex items-center gap-1.5'>
-              <span
-                className='inline-block w-5'
-                style={{ borderTop: '2px dashed #fbbf24' }}
-              />
+              <span className='inline-block w-5 h-0.5 rounded' style={{ backgroundColor: '#fbbf24' }} />
               <span>전문가 매수가</span>
             </div>
           )}
