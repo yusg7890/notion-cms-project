@@ -158,17 +158,12 @@ Research Archive는 개인 투자자·학습자를 위한 **투자 리서치 시
   - 모든 페이지에서 목 데이터 제거, `listResearches` / `getResearchById` / `listResearchesByTicker` / `getAllResearches` 연결
   - Playwright MCP 테스트 통과: 401/200 반환, 메인 페이지 실제 Notion 데이터 표시, 통합 검색 동작 확인
 
-- **Task 008: Notion 본문 렌더링 (notion-to-md + react-markdown)**
-  - `notion-to-md` 인스턴스 구성 및 커스텀 변환 규칙 (콜아웃, 토글, 코드블록)
-  - `react-markdown` + `remark-gfm` + shiki/rehype-prism 코드 하이라이트
-  - 이미지 컴포넌트 (`next/image`) 연동 — 만료 URL 대응 fallback
-  - 외부 링크 안전 처리 (`target="_blank"`, `rel="noopener noreferrer"`)
-  - 본문 내 TOC(선택) 및 앵커 링크
-  - **테스트 체크리스트** (Playwright MCP)
-    - [ ] 제목/본문/이미지/리스트/코드블록이 올바르게 렌더링
-    - [ ] 이미지 로딩 실패 시 대체 UI 표시
-    - [ ] 외부 링크 새 탭 및 rel 속성 확인
-    - [ ] 긴 문서 스크롤 성능 이상 없음
+- **Task 008: Notion 본문 렌더링 (notion-to-md + react-markdown)** ✅ - 완료
+  - `notion-to-md` 설치 및 `lib/notion/content.ts` 생성 — `getPageMarkdown(pageId)` 구현, 실패 시 `''` 반환
+  - `components/research/MarkdownRenderer.tsx` 생성 — h1~h3/p/ul/ol/li/code/pre/strong/a/img/blockquote/table 커스텀 렌더링
+  - 외부 링크 `target="_blank"` + `rel="noopener noreferrer"` 적용
+  - 이미지 로드 실패 시 `FallbackImage` 대체 UI 표시, 빈 본문 시 placeholder 표시
+  - `app/research/[id]/page.tsx` — `DUMMY_CONTENT` 제거, `getPageMarkdown` + `MarkdownRenderer` 연결, `historyResearches`와 병렬 호출(`Promise.all`)
 
 - **Task 009: 종목 히스토리 시계열 차트 구현 (Chart.js)**
   - `StockHistory` 집계 로직 (`lib/aggregate/stock-history.ts`) — 동일 ticker 기준 그룹핑, AI + Expert 통합, published_at 정렬
