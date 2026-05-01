@@ -112,9 +112,17 @@ export default async function ResearchPage({
       {/* 하단: 동일 종목 리서치 목록 */}
       {relatedResearches.length > 0 && (
         <section className='mt-10 pt-8 border-t'>
-          <h2 className='text-base font-semibold mb-4'>
-            {research.stockName} 리서치 히스토리
-          </h2>
+          <div className='flex items-center justify-between mb-4'>
+            <h2 className='text-base font-semibold'>
+              {research.stockName} 리서치 히스토리
+            </h2>
+            <a
+              href={`/stocks/${research.ticker}`}
+              className='text-sm text-muted-foreground hover:text-foreground underline underline-offset-2'
+            >
+              이 종목의 모든 리서치 보기 →
+            </a>
+          </div>
           <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
             {relatedResearches.map((r) => (
               <ResearchCard key={r.id} research={r} />
