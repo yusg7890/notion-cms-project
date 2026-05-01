@@ -99,6 +99,53 @@ export async function getResearchById(id: string): Promise<Research | null> {
 }
 
 /**
+ * 종목명·태그 키워드로 AI + Expert 통합 검색 (검색 페이지용)
+ * Notion filter: stock_name contains OR tags contains, status = published
+ * @returns publishedAt 내림차순 배열
+ */
+export async function searchResearches(query: string): Promise<Research[]> {
+  if (!query.trim()) return []
+
+  async function searchDb(dataSourceId: string, source: 'ai' | 'expert'): Promise<Research[]> {
+    if (!dataSourceId) return []
+    try {
+      const response = await notionClient.dataSources.query({
+        data_source_id: dataSourceId,
+        filter: {
+          and: [
+            { property: NOTION_PROPERTIES.STATUS, status: { equals: STATUS.PUBLISHED } },
+            {
+              or: [
+                { property: NOTION_PROPERTIES.STOCK_NAME, rich_text: { contains: query } },
+                { property: NOTION_PROPERTIES.TAGS, multi_select: { contains: query } },
+              ],
+            },
+          ],
+        },
+        sorts: [{ property: NOTION_PROPERTIES.PUBLISHED_AT, direction: 'descending' }],
+      })
+      const pages = response.results.filter(
+        (p): p is PageObjectResponse => p.object === 'page' && 'properties' in p
+      )
+      const mapper = source === 'expert' ? mapExpertPageToResearch : mapAiPageToResearch
+      return pages.map(mapper)
+    } catch (error) {
+      console.error(`[Notion] searchResearches(${query}, ${source}) 실패:`, error)
+      return []
+    }
+  }
+
+  const [aiList, expertList] = await Promise.all([
+    limit(() => searchDb(AI_DB_ID, 'ai')),
+    limit(() => searchDb(EXPERT_DB_ID, 'expert')),
+  ])
+
+  return [...aiList, ...expertList].sort(
+    (a, b) => b.publishedAt.getTime() - a.publishedAt.getTime()
+  )
+}
+
+/**
  * ticker 기준 AI + Expert 통합 리서치 목록 조회 (히스토리 페이지용)
  * @returns publishedAt 오름차순 정렬 배열
  */

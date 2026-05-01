@@ -1,31 +1,23 @@
-import { getAllResearches } from '@/lib/notion/queries'
-import { SearchInputWrapper } from '@/components/search/SearchInputWrapper'
+'use client'
+
+import { useState } from 'react'
+import type { Research } from '@/types/research'
+import { SearchInput } from '@/components/search/SearchInput'
 import { ResearchCard } from '@/components/research/ResearchCard'
+import { ResearchCardSkeleton } from '@/components/research/ResearchCardSkeleton'
 import { EmptyState } from '@/components/research/EmptyState'
 
-/** 검색은 매 요청마다 최신 결과 반영 */
-export const revalidate = 0
+export default function SearchPage() {
+  const [results, setResults] = useState<Research[]>([])
+  const [currentQuery, setCurrentQuery] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
-export default async function SearchPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ q?: string }>
-}) {
-  const { q } = await searchParams
+  function handleResults(data: Research[], query: string) {
+    setResults(data)
+    setCurrentQuery(query)
+  }
 
-  const allResearches = await getAllResearches()
-
-  // 검색어가 있을 때 종목명·티커·태그 기준으로 필터링 (대소문자 무시)
-  const filtered = q
-    ? allResearches.filter((r) => {
-        const query = q.toLowerCase()
-        return (
-          r.stockName.toLowerCase().includes(query) ||
-          r.ticker.toLowerCase().includes(query) ||
-          r.tags.some((tag) => tag.toLowerCase().includes(query))
-        )
-      })
-    : []
+  const hasQuery = currentQuery.trim() !== ''
 
   return (
     <div className='mx-auto w-full max-w-5xl px-4 py-8'>
@@ -33,33 +25,45 @@ export default async function SearchPage({
       <h1 className='text-xl font-bold mb-4'>리서치 검색</h1>
 
       {/* 검색 인풋 */}
-      <SearchInputWrapper />
+      <SearchInput onResults={handleResults} onLoadingChange={setIsLoading} />
 
       {/* 검색 결과 요약 */}
-      {q && (
+      {hasQuery && !isLoading && (
         <p className='mt-4 text-sm text-muted-foreground'>
-          &ldquo;{q}&rdquo; 검색 결과{' '}
-          <span className='font-semibold text-foreground'>{filtered.length}건</span>
+          &ldquo;{currentQuery}&rdquo; 검색 결과{' '}
+          <span className='font-semibold text-foreground'>{results.length}건</span>
         </p>
       )}
 
-      {/* 결과 목록 또는 빈 상태 */}
-      {filtered.length > 0 ? (
+      {/* 로딩 스켈레톤 */}
+      {isLoading && (
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4'>
-          {filtered.map((r) => (
+          {Array.from({ length: 3 }).map((_, i) => (
+            <ResearchCardSkeleton key={i} />
+          ))}
+        </div>
+      )}
+
+      {/* 검색 결과 목록 */}
+      {!isLoading && results.length > 0 && (
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4'>
+          {results.map((r) => (
             <ResearchCard key={r.id} research={r} />
           ))}
         </div>
-      ) : q ? (
+      )}
+
+      {/* 결과 없음 상태 */}
+      {!isLoading && hasQuery && results.length === 0 && (
         <div className='mt-4'>
           <EmptyState />
         </div>
-      ) : null}
+      )}
 
       {/* 초기 상태: 검색어 없을 때 안내 문구 */}
-      {!q && (
+      {!isLoading && !hasQuery && (
         <p className='mt-8 text-sm text-muted-foreground text-center'>
-          종목명, 티커, 또는 태그를 입력하고 Enter를 누르세요.
+          종목명, 티커, 또는 태그를 입력하세요.
         </p>
       )}
     </div>
