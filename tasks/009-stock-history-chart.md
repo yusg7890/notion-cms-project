@@ -25,7 +25,7 @@ Phase 2에서 더미 데이터로 구현한 종목 히스토리 페이지와 차
 
 ## 구현 단계
 
-- [ ] 1. `lib/aggregate/stock-history.ts` 생성
+- [x] 1. `lib/aggregate/stock-history.ts` 생성
   - `buildStockHistory(researches: Research[]): StockHistory | null` 함수
     - 입력 배열이 비어 있으면 `null` 반환
     - `ticker`, `stockName`, `sector`는 첫 번째 Research에서 추출
@@ -34,13 +34,13 @@ Phase 2에서 더미 데이터로 구현한 종목 히스토리 페이지와 차
     - `researches`를 `publishedAt` 오름차순 정렬 후 반환
   - `StockHistoryWithMeta` 타입: `StockHistory & { hasCurrencyMismatch: boolean }`
 
-- [ ] 2. `app/stocks/[ticker]/page.tsx` 수정
+- [x] 2. `app/stocks/[ticker]/page.tsx` 수정
   - `listResearchesByTicker(ticker)` 호출 후 `buildStockHistory` 적용
   - 결과가 `null`이면 `notFound()` 호출
   - `hasCurrencyMismatch: true`이면 차트 위에 경고 배너 표시
   - `StockSummaryCard`, `HistoryChartLazy`, 리서치 타임라인 순서로 렌더링
 
-- [ ] 3. `components/stocks/HistoryChart.tsx` 확인 및 수정 (필요시)
+- [x] 3. `components/stocks/HistoryChart.tsx` 확인 및 수정 (필요시)
   - 단일 데이터 포인트에서 에러가 없는지 확인
   - `targetPrice`가 0이거나 `expertBuyPrice`가 undefined인 경우 해당 라인 데이터셋 제거
 

@@ -165,13 +165,11 @@ Research Archive는 개인 투자자·학습자를 위한 **투자 리서치 시
   - 이미지 로드 실패 시 `FallbackImage` 대체 UI 표시, 빈 본문 시 placeholder 표시
   - `app/research/[id]/page.tsx` — `DUMMY_CONTENT` 제거, `getPageMarkdown` + `MarkdownRenderer` 연결, `historyResearches`와 병렬 호출(`Promise.all`)
 
-- **Task 009: 종목 히스토리 시계열 차트 구현 (Chart.js)**
-  - `StockHistory` 집계 로직 (`lib/aggregate/stock-history.ts`) — 동일 ticker 기준 그룹핑, AI + Expert 통합, published_at 정렬
-  - Chart.js LineChart — X축: 날짜, Y축: 가격, 파란색(target) + 황색(expertBuy) 두 라인
-  - `highlightLine: 'target' | 'expert'` — source별 해당 라인에 "현재 페이지" 레이블 표시
-  - 통화(Currency) 혼재 시 경고 및 기준 통화 선택 UX
-  - 데이터 포인트 클릭 → 해당 리서치 상세로 이동
-  - 차트 하단 리서치 타임라인(source 구분 카드 리스트) 표시
+- **Task 009: 종목 히스토리 시계열 차트 구현 (Chart.js)** ✅ - 완료
+  - `lib/aggregate/stock-history.ts` 생성 — `buildStockHistory` 집계 함수, `StockHistoryWithMeta` 타입 (hasCurrencyMismatch 플래그 포함)
+  - `app/stocks/[ticker]/page.tsx` — `buildStockHistory` 적용, 빈 결과 시 `notFound()`, 통화 혼재 시 경고 배너 표시
+  - HistoryChart 기존 구현 확인 — 단일 데이터 포인트, AI/Expert 두 라인, 클릭 이동, 통화 혼재 내부 경고 모두 이미 구현됨
+  - TypeScript 컴파일 오류 없음, 프로덕션 빌드 성공
   - **테스트 체크리스트** (Playwright MCP)
     - [ ] AI 단일 포인트 종목도 렌더링 가능
     - [ ] Expert 단일 포인트 종목도 렌더링 가능
