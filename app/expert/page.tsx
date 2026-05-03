@@ -2,8 +2,14 @@ import { listResearches } from '@/lib/notion/queries'
 import { ResearchCard } from '@/components/research/ResearchCard'
 import { FilterBarWrapper } from '@/components/research/FilterBarWrapper'
 import { EmptyState } from '@/components/research/EmptyState'
+import type { Metadata } from 'next'
 
 export const revalidate = 3600
+
+export const metadata: Metadata = {
+  title: 'Expert Research',
+  robots: { index: false, follow: false },
+}
 
 interface ExpertPageProps {
   searchParams: Promise<{ sector?: string; tags?: string }>

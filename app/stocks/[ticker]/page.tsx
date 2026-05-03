@@ -6,8 +6,21 @@ import { HistoryChartLazy as HistoryChart } from '@/components/stocks/HistoryCha
 import { StockSummaryCard } from '@/components/stocks/StockSummaryCard'
 import { ResearchCard } from '@/components/research/ResearchCard'
 import { OpinionBadge } from '@/components/research/OpinionBadge'
+import type { Metadata } from 'next'
 
 export const revalidate = 3600
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ ticker: string }>
+}): Promise<Metadata> {
+  const { ticker } = await params
+  return {
+    title: `${ticker} 종목 히스토리`,
+    robots: { index: false, follow: false },
+  }
+}
 
 export default async function StockHistoryPage({
   params,

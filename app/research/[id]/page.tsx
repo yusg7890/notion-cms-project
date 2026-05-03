@@ -8,8 +8,22 @@ import { ResearchCard } from '@/components/research/ResearchCard'
 import { MarkdownRenderer } from '@/components/research/MarkdownRenderer'
 import { Badge } from '@/components/ui/badge'
 import { HistoryChartLazy as HistoryChart } from '@/components/stocks/HistoryChartLazy'
+import type { Metadata } from 'next'
 
 export const revalidate = 86400
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const research = await getResearchById(id)
+  return {
+    title: research ? `${research.stockName} 리서치` : '리서치',
+    robots: { index: false, follow: false },
+  }
+}
 
 export default async function ResearchPage({
   params,
@@ -108,6 +122,11 @@ export default async function ResearchPage({
 
       {/* 본문 영역 — Notion 페이지 본문 */}
       <MarkdownRenderer content={markdown} />
+
+      {/* 인라인 면책 문구 */}
+      <aside className='mt-8 rounded-lg border border-muted bg-muted/30 px-4 py-3 text-sm text-muted-foreground'>
+        본 분석은 AI(Claude)가 생성한 개인 학습 기록이며, 투자 권유가 아닙니다. 투자 결과에 대한 책임은 전적으로 투자자 본인에게 있습니다.
+      </aside>
 
       {/* 하단: 동일 종목 리서치 목록 */}
       {relatedResearches.length > 0 && (
