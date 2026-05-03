@@ -90,6 +90,7 @@ export function HistoryChart({ researches, highlightId, highlightLine = 'target'
     : -1
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true)
   }, [])
 
@@ -292,8 +293,8 @@ export function HistoryChart({ researches, highlightId, highlightLine = 'target'
             min: -0.5,
             max: points.length - 0.5,
             minRange: 2,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             maxRange: points.length,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any,
         },
       },

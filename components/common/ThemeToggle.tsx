@@ -11,6 +11,7 @@ export function ThemeToggle() {
 
   // 마운트 전에는 렌더 안 함 — hydration mismatch 방지
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 

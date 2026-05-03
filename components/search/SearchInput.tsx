@@ -55,6 +55,7 @@ export function SearchInput({ onResults, onLoadingChange }: SearchInputProps) {
 
   // localStorage는 마운트 후에만 읽기 — SSR/클라이언트 hydration 불일치 방지
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRecentSearches(getRecentSearches())
   }, [])
 
