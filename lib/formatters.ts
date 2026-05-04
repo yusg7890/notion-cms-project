@@ -1,6 +1,9 @@
 import type { Currency } from '@/types/research'
 
-/** KRW/USD 통화에 맞는 목표가 포맷 문자열 반환 */
+/**
+ * 목표가를 통화별 형식으로 포맷
+ * KRW: ₩75,000 / USD: $195.50
+ */
 export function formatPrice(value: number, currency: Currency): string {
   if (currency === 'KRW') {
     return new Intl.NumberFormat('ko-KR', {
@@ -9,6 +12,7 @@ export function formatPrice(value: number, currency: Currency): string {
       maximumFractionDigits: 0,
     }).format(value)
   }
+
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -17,15 +21,19 @@ export function formatPrice(value: number, currency: Currency): string {
   }).format(value)
 }
 
-/** Date를 'YYYY.MM.DD' 형식으로 변환 */
+/**
+ * 날짜를 'YYYY.MM.DD' 형식으로 포맷
+ */
 export function formatDate(date: Date): string {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}.${m}.${d}`
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}.${month}.${day}`
 }
 
-/** Date를 'n일 전' / 'n개월 전' 상대시간 문자열로 변환 */
+/**
+ * 상대 시간 포맷 (오늘 / n일 전 / n개월 전 / n년 전)
+ */
 export function formatRelativeTime(date: Date): string {
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
@@ -33,8 +41,6 @@ export function formatRelativeTime(date: Date): string {
 
   if (diffDays < 1) return '오늘'
   if (diffDays < 30) return `${diffDays}일 전`
-  const diffMonths = Math.floor(diffDays / 30)
-  if (diffMonths < 12) return `${diffMonths}개월 전`
-  const diffYears = Math.floor(diffMonths / 12)
-  return `${diffYears}년 전`
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)}개월 전`
+  return `${Math.floor(diffDays / 365)}년 전`
 }

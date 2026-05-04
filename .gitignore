@@ -45,3 +45,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# screenshots and test artifacts
+*.png
+.playwright-mcp/
+
+# Shrimp Task Manager internal state (tool-generated, not project code)
+shrimp_data/

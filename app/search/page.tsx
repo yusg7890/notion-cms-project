@@ -1,64 +1,70 @@
-import { Suspense } from 'react'
-import { EmptyState } from '@/components/research/EmptyState'
-import { ResearchCard } from '@/components/research/ResearchCard'
+'use client'
+
+import { useState } from 'react'
+import type { Research } from '@/types/research'
 import { SearchInput } from '@/components/search/SearchInput'
-import { getMockResearches } from '@/lib/mocks/research'
+import { ResearchCard } from '@/components/research/ResearchCard'
+import { ResearchCardSkeleton } from '@/components/research/ResearchCardSkeleton'
+import { EmptyState } from '@/components/research/EmptyState'
 
-interface SearchPageProps {
-  searchParams: Promise<{ q?: string }>
-}
+export default function SearchPage() {
+  const [results, setResults] = useState<Research[]>([])
+  const [currentQuery, setCurrentQuery] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
-export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const { q } = await searchParams
-  const query = q?.trim() ?? ''
+  function handleResults(data: Research[], query: string) {
+    setResults(data)
+    setCurrentQuery(query)
+  }
 
-  const allResearches = getMockResearches()
-
-  // 종목명·티커·태그 기준 필터링 (대소문자 무시)
-  const results = query
-    ? allResearches.filter((r) => {
-        const lq = query.toLowerCase()
-        return (
-          r.stockName.toLowerCase().includes(lq) ||
-          r.ticker.toLowerCase().includes(lq) ||
-          r.tags.some((tag) => tag.toLowerCase().includes(lq))
-        )
-      })
-    : []
+  const hasQuery = currentQuery.trim() !== ''
 
   return (
     <div className='mx-auto w-full max-w-5xl px-4 py-8'>
-      <div className='mb-6'>
-        <h1 className='text-xl font-bold tracking-tight'>검색</h1>
-        <p className='mt-1 text-sm text-muted-foreground'>
-          종목명, 티커, 태그로 리서치를 검색하세요.
+      {/* 페이지 제목 */}
+      <h1 className='text-xl font-bold mb-4'>리서치 검색</h1>
+
+      {/* 검색 인풋 */}
+      <SearchInput onResults={handleResults} onLoadingChange={setIsLoading} />
+
+      {/* 검색 결과 요약 */}
+      {hasQuery && !isLoading && (
+        <p className='mt-4 text-sm text-muted-foreground'>
+          &ldquo;{currentQuery}&rdquo; 검색 결과{' '}
+          <span className='font-semibold text-foreground'>{results.length}건</span>
         </p>
-      </div>
+      )}
 
-      {/* 검색 입력 */}
-      <div className='mb-8'>
-        <Suspense fallback={null}>
-          <SearchInput />
-        </Suspense>
-      </div>
+      {/* 로딩 스켈레톤 */}
+      {isLoading && (
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4'>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <ResearchCardSkeleton key={i} />
+          ))}
+        </div>
+      )}
 
-      {/* 검색 결과 */}
-      {query && (
-        <>
-          <p className='mb-4 text-sm text-muted-foreground'>
-            <span className='font-medium text-foreground'>&quot;{query}&quot;</span> 검색 결과{' '}
-            {results.length}건
-          </p>
-          {results.length === 0 ? (
-            <EmptyState />
-          ) : (
-            <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-              {results.map((research) => (
-                <ResearchCard key={research.id} research={research} />
-              ))}
-            </div>
-          )}
-        </>
+      {/* 검색 결과 목록 */}
+      {!isLoading && results.length > 0 && (
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4'>
+          {results.map((r) => (
+            <ResearchCard key={r.id} research={r} />
+          ))}
+        </div>
+      )}
+
+      {/* 결과 없음 상태 */}
+      {!isLoading && hasQuery && results.length === 0 && (
+        <div className='mt-4'>
+          <EmptyState />
+        </div>
+      )}
+
+      {/* 초기 상태: 검색어 없을 때 안내 문구 */}
+      {!isLoading && !hasQuery && (
+        <p className='mt-8 text-sm text-muted-foreground text-center'>
+          종목명, 티커, 또는 태그를 입력하세요.
+        </p>
       )}
     </div>
   )

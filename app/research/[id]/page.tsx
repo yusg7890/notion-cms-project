@@ -1,104 +1,154 @@
+import { getResearchById, listResearchesByTicker } from '@/lib/notion/queries'
+import { getPageMarkdown } from '@/lib/notion/content'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import { Badge } from '@/components/ui/badge'
+import { formatPrice, formatDate } from '@/lib/formatters'
 import { OpinionBadge } from '@/components/research/OpinionBadge'
-import { formatDate, formatPrice } from '@/lib/formatters'
-import { getMockResearchById } from '@/lib/mocks/research'
+import { MarketCapBadge } from '@/components/research/MarketCapBadge'
+import { ResearchCard } from '@/components/research/ResearchCard'
+import { MarkdownRenderer } from '@/components/research/MarkdownRenderer'
+import { Badge } from '@/components/ui/badge'
+import { HistoryChartLazy as HistoryChart } from '@/components/stocks/HistoryChartLazy'
+import type { Metadata } from 'next'
 
 export const revalidate = 86400
 
-interface ResearchPageProps {
+export async function generateMetadata({
+  params,
+}: {
   params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const research = await getResearchById(id)
+  return {
+    title: research ? `${research.stockName} 리서치` : '리서치',
+    robots: { index: false, follow: false },
+  }
 }
 
-/** 더미 마크다운 본문 (Task 008에서 Notion 실제 본문으로 교체) */
-const DUMMY_BODY = `
-## 투자의견 요약
-
-본 분석은 최근 공개된 재무 데이터와 산업 트렌드를 바탕으로 작성되었습니다.
-
-## 밸류에이션 분석
-
-### PER 기반 적정 주가
-
-- 2026년 예상 EPS: 기준값 활용
-- 적용 PER: 업종 평균 대비 프리미엄 적용
-- 적정 주가: 목표가 산정
-
-### 리스크 요인
-
-1. 글로벌 경기 둔화에 따른 수요 감소 가능성
-2. 경쟁사의 신기술 개발 및 시장 진입
-3. 환율 변동 리스크
-
-## 결론
-
-현재 주가 수준은 중장기 성장 가치 대비 저평가 구간으로 판단되며, 분할 매수 전략을 권장합니다.
-
----
-
-*본 분석은 AI(Claude)가 생성한 개인 학습·기록 목적의 아카이브입니다. 투자 권유가 아닙니다.*
-`
-
-export default async function ResearchPage({ params }: ResearchPageProps) {
+export default async function ResearchPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
   const { id } = await params
-  const research = getMockResearchById(id)
+  const research = await getResearchById(id)
 
-  if (!research) notFound()
+  if (!research) {
+    notFound()
+  }
 
-  const {
-    stockName,
-    ticker,
-    sector,
-    tags,
-    opinion,
-    targetPrice,
-    currency,
-    publishedAt,
-    aiModel,
-  } = research
+  const [historyResearches, markdown] = await Promise.all([
+    listResearchesByTicker(research.ticker),
+    getPageMarkdown(id),
+  ])
+
+  // 차트용: 오름차순 / 카드 목록용: 내림차순, 현재 리서치 제외
+  const relatedResearches = [...historyResearches]
+    .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
+    .filter((r) => r.id !== research.id)
 
   return (
     <div className='mx-auto w-full max-w-3xl px-4 py-8'>
-      {/* 헤더 메타 정보 */}
-      <div className='mb-8'>
-        <div className='mb-3 flex flex-wrap items-center gap-2'>
-          <Badge variant='secondary'>{sector}</Badge>
-          {tags.map((tag) => (
-            <Badge key={tag} variant='outline' className='text-xs'>
-              {tag}
-            </Badge>
-          ))}
+      {/* 헤더 영역 */}
+      <div className='border-b pb-6 mb-6'>
+        <h1 className='text-2xl font-bold'>{research.stockName}</h1>
+        <div className='flex items-center gap-2 mt-2 flex-wrap'>
+          <span className='text-sm text-muted-foreground font-mono'>
+            {research.ticker}
+          </span>
+          <Badge variant='outline'>{research.sector}</Badge>
+          <MarketCapBadge marketCap={research.marketCap} full />
+          <OpinionBadge opinion={research.opinion} />
         </div>
+      </div>
 
-        <h1 className='text-2xl font-bold tracking-tight'>{stockName}</h1>
-        <p className='mt-1 text-sm text-muted-foreground'>{ticker}</p>
-
-        <div className='mt-4 flex flex-wrap items-center gap-4'>
-          <OpinionBadge opinion={opinion} />
-          <span className='text-lg font-semibold'>{formatPrice(targetPrice, currency)}</span>
-          <span className='text-sm text-muted-foreground'>{formatDate(publishedAt)}</span>
+      {/* 메타 정보 카드 */}
+      <div className='bg-muted/50 rounded-lg p-4 mb-6'>
+        <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+          {/* 가격 정보: source에 따라 목표가 또는 전문가 매수가 표시 */}
+          <div className='flex items-end gap-6'>
+            {research.source === 'expert' ? (
+              <div className='flex flex-col gap-0.5'>
+                <span className='text-xs text-muted-foreground'>전문가 매수가</span>
+                <span className='text-xl font-bold text-amber-500'>
+                  {research.expertBuyPrice != null
+                    ? formatPrice(research.expertBuyPrice, research.currency)
+                    : '-'}
+                </span>
+              </div>
+            ) : (
+              <div className='flex flex-col gap-0.5'>
+                <span className='text-xs text-muted-foreground'>목표가</span>
+                <span className='text-xl font-bold'>
+                  {research.targetPrice != null
+                    ? formatPrice(research.targetPrice, research.currency)
+                    : '-'}
+                </span>
+              </div>
+            )}
+          </div>
+          {/* 발행일 + 출처 */}
+          <div className='flex flex-col gap-1 text-sm text-muted-foreground sm:text-right'>
+            <span>발행일: {formatDate(research.publishedAt)}</span>
+            <span>
+              {research.source === 'expert' ? '증권사: ' : '분석 모델: '}
+              {research.aiModel}
+            </span>
+          </div>
         </div>
-
-        <p className='mt-2 text-xs text-muted-foreground'>분석 모델: {aiModel}</p>
+        {/* 태그 목록 */}
+        {research.tags.length > 0 && (
+          <div className='flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-border/50'>
+            {research.tags.map((tag) => (
+              <Badge key={tag} variant='outline' className='text-xs'>
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* 본문 (react-markdown) — Task 008에서 Notion 실제 본문으로 교체 */}
-      <div className='prose prose-sm max-w-none text-foreground [&_h2]:mb-2 [&_h2]:mt-6 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mb-1 [&_h3]:mt-4 [&_h3]:text-sm [&_h3]:font-medium [&_li]:text-sm [&_p]:text-sm [&_p]:leading-relaxed [&_p]:text-muted-foreground'>
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{DUMMY_BODY}</ReactMarkdown>
-      </div>
+      {/* 목표가 추이 차트 */}
+      <section className='mb-6'>
+        <h2 className='text-base font-semibold mb-3'>목표가 추이</h2>
+        <div className='rounded-lg border p-4 bg-background'>
+          <HistoryChart
+            researches={historyResearches}
+            highlightId={research.id}
+            highlightLine={research.source === 'expert' ? 'expert' : 'target'}
+          />
+        </div>
+      </section>
 
-      {/* 종목 히스토리 링크 */}
-      <div className='mt-10 border-t border-border pt-6'>
-        <Link
-          href={`/stocks/${ticker}`}
-          className='text-sm font-medium text-primary underline underline-offset-4 hover:text-primary/80'
-        >
-          이 종목의 모든 리서치 보기 →
-        </Link>
-      </div>
+      {/* 본문 영역 — Notion 페이지 본문 */}
+      <MarkdownRenderer content={markdown} />
+
+      {/* 인라인 면책 문구 */}
+      <aside className='mt-8 rounded-lg border border-muted bg-muted/30 px-4 py-3 text-sm text-muted-foreground'>
+        본 분석은 AI(Claude)가 생성한 개인 학습 기록이며, 투자 권유가 아닙니다. 투자 결과에 대한 책임은 전적으로 투자자 본인에게 있습니다.
+      </aside>
+
+      {/* 하단: 동일 종목 리서치 목록 */}
+      {relatedResearches.length > 0 && (
+        <section className='mt-10 pt-8 border-t'>
+          <div className='flex items-center justify-between mb-4'>
+            <h2 className='text-base font-semibold'>
+              {research.stockName} 리서치 히스토리
+            </h2>
+            <a
+              href={`/stocks/${research.ticker}`}
+              className='text-sm text-muted-foreground hover:text-foreground underline underline-offset-2'
+            >
+              이 종목의 모든 리서치 보기 →
+            </a>
+          </div>
+          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+            {relatedResearches.map((r) => (
+              <ResearchCard key={r.id} research={r} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

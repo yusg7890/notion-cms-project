@@ -1,82 +1,147 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, useEffect, useRef } from 'react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import type { Research } from '@/types/research'
 
-const STORAGE_KEY = 'recent-searches'
-const MAX_RECENT = 5
+/** 최근 검색어 localStorage 키 */
+const RECENT_SEARCHES_KEY = 'recent-searches'
+/** 저장할 최근 검색어 최대 개수 */
+const MAX_RECENT_SEARCHES = 5
+/** 디바운스 지연 시간 (ms) */
+const DEBOUNCE_DELAY = 300
 
+/** API 응답에서 publishedAt은 ISO 문자열 — Date 객체로 변환 */
+type RawResearch = Omit<Research, 'publishedAt'> & { publishedAt: string }
+
+function deserializeResearch(raw: RawResearch): Research {
+  return { ...raw, publishedAt: new Date(raw.publishedAt) }
+}
+
+/** localStorage에서 최근 검색어 목록 읽기 */
 function getRecentSearches(): string[] {
-  if (typeof window === 'undefined') return []
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
+    const stored = localStorage.getItem(RECENT_SEARCHES_KEY)
+    return stored ? (JSON.parse(stored) as string[]) : []
   } catch {
     return []
   }
 }
 
-function saveRecentSearch(query: string) {
-  const prev = getRecentSearches()
-  const next = [query, ...prev.filter((q) => q !== query)].slice(0, MAX_RECENT)
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+/** 최근 검색어 목록에 새 검색어 추가 후 저장 */
+function saveRecentSearch(term: string): void {
+  const recent = getRecentSearches().filter((t) => t !== term)
+  const updated = [term, ...recent].slice(0, MAX_RECENT_SEARCHES)
+  try {
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated))
+  } catch {
+    // localStorage 접근 불가 환경에서는 무시
+  }
 }
 
-/** 검색 입력 컴포넌트 (최근 검색어 + URL searchParams 동기화) */
-export function SearchInput() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const currentQ = searchParams.get('q') ?? ''
+interface SearchInputProps {
+  /** 검색 결과와 현재 쿼리를 전달하는 콜백 */
+  onResults: (results: Research[], query: string) => void
+  /** 로딩 상태를 전달하는 콜백 */
+  onLoadingChange: (isLoading: boolean) => void
+}
 
-  const [value, setValue] = useState(currentQ)
+/** 종목명·태그 키워드 검색 인풋 — 300ms 디바운스 + /api/search 호출 */
+export function SearchInput({ onResults, onLoadingChange }: SearchInputProps) {
+  const [inputValue, setInputValue] = useState('')
   const [recentSearches, setRecentSearches] = useState<string[]>([])
-  const inputRef = useRef<HTMLInputElement>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
+  // localStorage는 마운트 후에만 읽기 — SSR/클라이언트 hydration 불일치 방지
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRecentSearches(getRecentSearches())
   }, [])
 
-  function handleSubmit(query: string) {
-    const trimmed = query.trim()
+  // 디바운스: inputValue 변경 후 300ms 뒤 API 호출
+  useEffect(() => {
+    const trimmed = inputValue.trim()
+
     if (!trimmed) {
-      router.push('/search')
+      onResults([], '')
+      onLoadingChange(false)
       return
     }
-    saveRecentSearch(trimmed)
-    setRecentSearches(getRecentSearches())
-    router.push(`/search?q=${encodeURIComponent(trimmed)}`)
+
+    onLoadingChange(true)
+
+    const timer = setTimeout(async () => {
+      // 이전 진행 중인 요청 취소
+      abortRef.current?.abort()
+      const controller = new AbortController()
+      abortRef.current = controller
+
+      try {
+        const res = await fetch(
+          `/api/search?q=${encodeURIComponent(trimmed)}`,
+          { signal: controller.signal }
+        )
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const raw: RawResearch[] = await res.json()
+        const results = raw.map(deserializeResearch)
+        saveRecentSearch(trimmed)
+        setRecentSearches(getRecentSearches())
+        onResults(results, trimmed)
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('[SearchInput] 검색 실패:', error)
+          onResults([], trimmed)
+        }
+      } finally {
+        onLoadingChange(false)
+      }
+    }, DEBOUNCE_DELAY)
+
+    return () => {
+      clearTimeout(timer)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputValue])
+
+  /** 최근 검색어 배지 클릭 */
+  function handleRecentClick(term: string) {
+    setInputValue(term)
   }
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === 'Enter') handleSubmit(value)
-  }
+  const showRecentSearches = inputValue.trim() === '' && recentSearches.length > 0
 
   return (
-    <div className='space-y-3'>
-      <div className='flex gap-2'>
-        <Input
-          ref={inputRef}
-          type='search'
-          placeholder='종목명, 티커, 태그로 검색...'
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          aria-label='리서치 검색'
-          className='max-w-lg'
-        />
-      </div>
+    <div className='flex flex-col gap-3'>
+      <Input
+        type='search'
+        placeholder='종목명 또는 태그로 검색 (예: 삼성전자, HBM)'
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        aria-label='리서치 검색'
+        className='h-10 text-sm'
+      />
 
-      {/* 최근 검색어 (검색어 없을 때 표시) */}
-      {!currentQ && recentSearches.length > 0 && (
+      {/* 최근 검색어 목록 — 인풋이 비어있을 때만 표시 */}
+      {showRecentSearches && (
         <div className='flex flex-wrap items-center gap-2'>
           <span className='text-xs text-muted-foreground'>최근 검색:</span>
-          {recentSearches.map((q) => (
-            <button key={q} onClick={() => { setValue(q); handleSubmit(q) }}>
-              <Badge variant='outline' className='cursor-pointer text-xs hover:bg-muted'>
-                {q}
-              </Badge>
-            </button>
+          {recentSearches.map((term) => (
+            <Badge
+              key={term}
+              variant='outline'
+              className='cursor-pointer text-xs hover:bg-muted'
+              onClick={() => handleRecentClick(term)}
+              role='button'
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  handleRecentClick(term)
+                }
+              }}
+            >
+              {term}
+            </Badge>
           ))}
         </div>
       )}
