@@ -9,14 +9,16 @@ Claude가 생성한 종목 분석 리서치를 Notion에 축적하고, 동일 �
 - 개발 로드맵: @docs/ROADMAP.md
 
 
-⚡ 자주 사용하는 명령어
+## ⚡ 자주 사용하는 명령어
 # 개발
 npm run dev         # 개발 서버 실행 (Turbopack)
 npm run build       # 프로덕션 빌드
-npm run check-all   # 모든 검사 통합 실행 (권장)
+npm run check-all   # 모든 검사 통합 실행 (권장) 
 
 # UI 컴포넌트
 npx shadcn@latest add button    # 새 컴포넌트 추가
-✅ 작업 완료 체크리스트
+
+
+## ✅ 작업 완료 체크리스트
 npm run check-all   # 모든 검사 통과 확인
 npm run build       # 빌드 성공 확인
